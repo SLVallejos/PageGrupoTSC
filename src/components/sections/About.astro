@@ -1,0 +1,14 @@
+---
+import { about } from '../../data/about.js';
+import Card from '../ui/Card.astro';
+---
+
+<section id="nosotros" class="mx-auto max-w-6xl px-5 py-20 text-center" aria-label="Nosotros">
+  <h2 class="reveal mb-5 text-3xl font-bold sm:text-4xl">{about.title}</h2>
+  <p class="reveal mx-auto mb-10 max-w-3xl text-muted">{about.description}</p>
+  <div class="grid gap-6 sm:grid-cols-2 sm:max-w-2xl sm:mx-auto">
+    {about.cards.map((card) => (
+      <Card icon={card.icon} title={card.title} text={card.text} />
+    ))}
+  </div>
+</section>

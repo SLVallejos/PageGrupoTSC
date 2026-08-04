@@ -1,0 +1,54 @@
+---
+import { caseStudies } from '../../data/caseStudies.js';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { Icon } from '../ui/icons.jsx';
+---
+
+<section id="casos-exito" class="mx-auto max-w-6xl px-5 py-24" aria-label="Casos de éxito">
+  <SectionHeading
+    kicker="Confianza y resultados"
+    title="Casos de Éxito"
+    subtitle="Soluciones e infraestructura tecnológica para empresas y organismos líderes que confían en nuestro respaldo."
+  />
+
+  <div class="grid gap-8 sm:grid-cols-2">
+    {caseStudies.map((c) => (
+      <div class="glass-card reveal group relative flex flex-col overflow-hidden p-8 pt-9 transition-all duration-300 hover:-translate-y-2 hover:border-accent/40 hover:shadow-glow">
+        <span class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent/0 via-accent to-accent/0 opacity-60" aria-hidden="true"></span>
+
+        <div class="mb-6 flex items-start justify-between">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/15 to-sky-900/5 transition-all group-hover:-rotate-3 group-hover:scale-105 group-hover:border-accent group-hover:bg-accent">
+            <Icon name={c.icon} size={24} className="text-accent group-hover:text-ink-900" />
+          </div>
+          <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-400">{c.badge}</span>
+        </div>
+
+        <div class="mb-6 flex h-14 w-40 items-center justify-center rounded-xl bg-white/90 px-4 py-2.5">
+          <img src={`/img/${c.logo}`} alt={c.logoAlt} loading="lazy" decoding="async" class="max-h-full max-w-full object-contain" />
+        </div>
+
+        <div class="flex flex-1 flex-col gap-3.5">
+          <div class="flex min-h-[152px] items-center rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm leading-relaxed text-muted">
+            <p><strong class="text-slate-50">Desafío:</strong> {c.challenge}</p>
+          </div>
+          <div class="flex min-h-[152px] items-center rounded-xl border border-white/5 bg-white/[0.02] p-4 text-sm leading-relaxed text-muted">
+            <p><strong class="text-slate-50">Solución:</strong> {c.solution}</p>
+          </div>
+          <div class="flex min-h-[152px] flex-1 items-center gap-3 rounded-xl border border-accent/15 bg-accent/[0.05] p-4 text-sm leading-relaxed text-slate-100">
+            <Icon name="target" size={16} className="shrink-0 text-accent" />
+            <p>
+              <strong class="text-slate-50">Resultado:</strong> {c.resultPrefix}
+              <span class="bg-gradient-to-br from-white to-accent bg-clip-text font-extrabold text-transparent">{c.resultMetric}</span>
+              {c.resultSuffix}
+            </p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="glass-card reveal mx-auto mt-10 max-w-2xl p-8 text-center shadow-glow">
+    <p class="mb-4 text-lg text-slate-100">¿Querés una solución similar para tu empresa o institución?</p>
+    <a href="#contacto" class="btn-primary">Solicitar asesoramiento técnico</a>
+  </div>
+</section>

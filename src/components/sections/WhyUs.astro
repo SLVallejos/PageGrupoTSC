@@ -1,0 +1,14 @@
+---
+import { whyUs } from '../../data/whyUs.js';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Card from '../ui/Card.astro';
+---
+
+<section id="porque" class="mx-auto max-w-6xl px-5 py-20" aria-label="Por qué elegirnos">
+  <SectionHeading title="¿Por qué elegir Grupo TSC?" />
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {whyUs.map((item) => (
+      <Card icon={item.icon} title={item.title} text={item.text} />
+    ))}
+  </div>
+</section>

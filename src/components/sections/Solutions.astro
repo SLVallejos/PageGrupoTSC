@@ -1,0 +1,21 @@
+---
+import { solutions } from '../../data/solutions.js';
+import SectionHeading from '../ui/SectionHeading.astro';
+import { Icon } from '../ui/icons.jsx';
+import SolutionsTabs from '../islands/SolutionsTabs.jsx';
+---
+
+<section id="especializados" class="px-5 py-20" aria-label="Soluciones especializadas">
+  <SectionHeading
+    kicker="Portafolio de soluciones"
+    title="Soluciones Especializadas"
+    subtitle="Ingeniería e infraestructura tecnológica para empresas, industrias y organismos que necesitan rendimiento sostenido."
+  />
+
+  <div class="reveal mx-auto mb-10 flex max-w-4xl items-start gap-3.5 rounded-2xl border border-accent/10 bg-gradient-to-br from-accent/10 to-ink-800/40 p-5">
+    <Icon name="target" size={20} className="mt-0.5 shrink-0 text-accent" />
+    <span class="text-sm text-slate-100">Seleccioná una solución para ver beneficios, alcance técnico y tipo de implementación.</span>
+  </div>
+
+  <SolutionsTabs items={solutions} client:visible />
+</section>
