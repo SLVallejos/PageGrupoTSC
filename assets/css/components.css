@@ -1037,6 +1037,15 @@
   color: var(--color-text-soft);
 }
 
+.tv-rack__u {
+  flex-shrink: 0;
+  width: 16px;
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}
+
 .tv-rack__label {
   flex: 1;
 }
@@ -1100,7 +1109,7 @@
 
 .tv-wifi {
   position: relative;
-  height: 170px;
+  height: 185px;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: radial-gradient(circle at 25% 25%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 55%),
@@ -1126,6 +1135,18 @@
 .tv-wifi__ap--1 { top: 25%; left: 25%; }
 .tv-wifi__ap--2 { top: 60%; left: 78%; }
 .tv-wifi__ap--3 { top: 82%; left: 45%; }
+
+.tv-wifi__ap-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  white-space: nowrap;
+  font-size: 8px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-mutedest);
+}
 
 .tv-wifi__ring {
   position: absolute;
@@ -1196,6 +1217,17 @@
   100% { box-shadow: 0 0 0 16px color-mix(in srgb, var(--color-accent) 0%, transparent); }
 }
 
+.tv-access__door-status {
+  font-size: 10px;
+  color: var(--color-muted);
+  transition: color var(--transition-fast);
+}
+
+.tv-access__door-status.is-open {
+  color: var(--color-success);
+  font-weight: var(--fw-bold);
+}
+
 .tv-access__log {
   width: 100%;
   display: flex;
@@ -1249,7 +1281,9 @@
 }
 
 .tv-phone__label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
   margin-bottom: var(--space-1);
   font-size: 10px;
   font-weight: var(--fw-bold);
@@ -1355,11 +1389,15 @@
 
 .tv-help__avatar {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 26px;
   height: 26px;
   border-radius: var(--radius-full);
   background-color: var(--color-ink-800);
   border: 1px solid var(--color-success);
+  color: var(--color-success);
   flex-shrink: 0;
 }
 

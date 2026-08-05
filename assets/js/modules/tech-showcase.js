@@ -59,12 +59,25 @@ function startWifiCount(container, registerInterval) {
 function scheduleAccessEvent(container, registerInterval, registerTimeout) {
   const reader = qs('[data-role="reader"]', container);
   const log = qs('[data-role="log"]', container);
+  const doorStatus = qs('[data-role="door-status"]', container);
   if (!reader || !log) return;
 
   const addEvent = () => {
     const denied = Math.random() < 0.25;
     reader.classList.toggle('is-granting', !denied);
-    registerTimeout(setTimeout(() => reader.classList.remove('is-granting'), 900));
+    if (doorStatus) {
+      doorStatus.textContent = denied ? 'Puerta principal · acceso denegado' : 'Puerta principal · abierta';
+      doorStatus.classList.toggle('is-open', !denied);
+    }
+    registerTimeout(
+      setTimeout(() => {
+        reader.classList.remove('is-granting');
+        if (doorStatus) {
+          doorStatus.textContent = 'Puerta principal · cerrada';
+          doorStatus.classList.remove('is-open');
+        }
+      }, 900)
+    );
 
     const row = document.createElement('div');
     row.className = `tv-access__row is-new${denied ? ' is-denied' : ''}`;
