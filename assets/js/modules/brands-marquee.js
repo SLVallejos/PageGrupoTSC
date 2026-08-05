@@ -20,7 +20,7 @@ export function initBrandsMarquee(trackEl) {
   let speed = loopWidth / LOOP_DURATION_MS;
   let position = 0;
   let isDragging = false;
-  let isHovering = false;
+  let isFocused = false;
   let isSettling = false;
   let settleTimer = null;
   let dragStartX = 0;
@@ -42,7 +42,7 @@ export function initBrandsMarquee(trackEl) {
     const dt = now - lastFrameTime;
     lastFrameTime = now;
 
-    if (!isDragging && !isHovering && !isSettling) {
+    if (!isDragging && !isFocused && !isSettling) {
       position = wrap(position - speed * dt);
       applyTransform();
     }
@@ -72,7 +72,13 @@ export function initBrandsMarquee(trackEl) {
     clearSettleTimer();
     isSettling = false;
     trackEl.classList.add('is-dragging');
-    trackEl.setPointerCapture(event.pointerId);
+    // setPointerCapture puede fallar en casos límite (ej. multi-touch);
+    // no debe impedir que el arrastre siga funcionando si eso pasa.
+    try {
+      trackEl.setPointerCapture(event.pointerId);
+    } catch {
+      /* noop */
+    }
   }
 
   function onPointerMove(event) {
@@ -85,8 +91,12 @@ export function initBrandsMarquee(trackEl) {
     if (!isDragging) return;
     isDragging = false;
     trackEl.classList.remove('is-dragging');
-    if (trackEl.hasPointerCapture(event.pointerId)) {
-      trackEl.releasePointerCapture(event.pointerId);
+    try {
+      if (trackEl.hasPointerCapture(event.pointerId)) {
+        trackEl.releasePointerCapture(event.pointerId);
+      }
+    } catch {
+      /* noop */
     }
     scheduleResume();
   }
@@ -96,17 +106,14 @@ export function initBrandsMarquee(trackEl) {
   trackEl.addEventListener('pointerup', endDrag);
   trackEl.addEventListener('pointercancel', endDrag);
 
-  rootEl.addEventListener('pointerenter', (event) => {
-    if (event.pointerType === 'mouse') isHovering = true;
-  });
-  rootEl.addEventListener('pointerleave', (event) => {
-    if (event.pointerType === 'mouse') isHovering = false;
-  });
+  // El autoplay NO se pausa por hover — sólo por arrastre real o cuando el
+  // usuario navega con teclado hasta un link dentro del marquee (para que
+  // pueda leerlo sin que el texto se mueva bajo el foco).
   rootEl.addEventListener('focusin', () => {
-    isHovering = true;
+    isFocused = true;
   });
   rootEl.addEventListener('focusout', () => {
-    isHovering = false;
+    isFocused = false;
   });
 
   window.addEventListener(

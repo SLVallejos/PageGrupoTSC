@@ -82,7 +82,11 @@ function scheduleAccessEvent(container, registerInterval, registerTimeout) {
     const row = document.createElement('div');
     row.className = `tv-access__row is-new${denied ? ' is-denied' : ''}`;
     const name = ACCESS_NAMES[Math.floor(Math.random() * ACCESS_NAMES.length)];
-    row.innerHTML = `<span>${name}</span><span>${denied ? 'Denegado' : 'Concedido'}</span>`;
+    const nameEl = document.createElement('span');
+    nameEl.textContent = name;
+    const statusEl = document.createElement('span');
+    statusEl.textContent = denied ? 'Denegado' : 'Concedido';
+    row.append(nameEl, statusEl);
     log.prepend(row);
     while (log.children.length > 3) log.lastElementChild.remove();
     registerTimeout(setTimeout(() => row.classList.remove('is-new'), 500));
@@ -136,10 +140,12 @@ function initLiveMockups(wrapperEl, tablistEl) {
   const panels = qsa('.tab-panel', wrapperEl);
   if (!panels.length) return;
 
+  // Guarda copias (Node.cloneNode, no strings) del markup original de cada
+  // mockup para poder "reiniciarlo" cada vez que se vuelve a esa pestaña.
   const snapshots = new Map();
   panels.forEach((panel) => {
     const visual = qs('[data-live]', panel);
-    if (visual) snapshots.set(panel.id, visual.innerHTML);
+    if (visual) snapshots.set(panel.id, Array.from(visual.childNodes).map((node) => node.cloneNode(true)));
   });
 
   let intervalIds = [];
@@ -166,7 +172,7 @@ function initLiveMockups(wrapperEl, tablistEl) {
     const visual = qs('[data-live]', panel);
     if (!visual) return;
     const snapshot = snapshots.get(panel.id);
-    if (snapshot !== undefined) visual.innerHTML = snapshot;
+    if (snapshot) visual.replaceChildren(...snapshot.map((node) => node.cloneNode(true)));
     if (prefersReducedMotion() || !isInView) return;
     LIVE_STARTERS[visual.dataset.live]?.(visual, registerInterval, registerTimeout);
   }

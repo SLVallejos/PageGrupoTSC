@@ -184,11 +184,25 @@
 }
 
 .projects-highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
   padding: var(--space-6);
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.projects-highlight:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.projects-highlight__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
 }
 
 .projects-highlight__title {
-  margin-bottom: var(--space-2);
   display: block;
   color: var(--color-text);
 }
@@ -219,6 +233,7 @@
 
 .contact-grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
 }
 

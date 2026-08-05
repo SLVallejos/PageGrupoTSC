@@ -1,12 +1,23 @@
-import { qsa } from '../utils.js';
+import { qsa, prefersReducedMotion } from '../utils.js';
+import { attachDragGesture } from './drag-gesture.js';
 
 /**
  * Carrusel central con tarjeta desplegable para Casos de Éxito. Las 4
  * tarjetas ya existen en el HTML (desafío/solución incluidos, para SEO y
- * uso sin JS); acá sólo se reordena visualmente cuál queda al centro
- * (vía CSS `order`) y se togglea el desplegable de la tarjeta activa —
- * mismo patrón que tabs.js/accordion.js: comportamiento, no contenido.
+ * uso sin JS); acá sólo se reordena visualmente cuál queda al centro (vía
+ * CSS `order`) y se togglea el desplegable de la tarjeta activa — mismo
+ * patrón que tabs.js/accordion.js: comportamiento, no contenido.
+ *
+ * Suma autoplay en loop (ya era circular por diseño de roleFor()) y swipe
+ * horizontal. El autoplay se pausa únicamente ante interacción manual real
+ * (click, arrastre) y se reanuda solo tras un breve respiro — nunca se
+ * detiene por sólo pasar el mouse por encima.
  */
+
+const AUTOPLAY_INTERVAL_MS = 5000;
+const RESUME_DELAY_MS = 3000;
+const SWIPE_THRESHOLD_PX = 50;
+
 export function initCaseCarousel(rootEl, dotsEl) {
   if (!rootEl) return;
 
@@ -16,6 +27,8 @@ export function initCaseCarousel(rootEl, dotsEl) {
   const dots = dotsEl ? qsa('button', dotsEl) : [];
   let activeIndex = 0;
   let expanded = false;
+  let autoplayTimer = null;
+  let resumeTimer = null;
 
   function roleFor(index) {
     const last = cards.length - 1;
@@ -46,25 +59,77 @@ export function initCaseCarousel(rootEl, dotsEl) {
     });
   }
 
+  function goTo(index) {
+    activeIndex = ((index % cards.length) + cards.length) % cards.length;
+    expanded = false;
+    render();
+  }
+
+  /** Detiene el autoplay (ej. al iniciar una interacción manual). */
+  function stopAutoplay() {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
+    }
+  }
+
+  /** Arranca el autoplay en loop; no hace nada si el usuario prefiere menos movimiento. */
+  function startAutoplay() {
+    if (prefersReducedMotion() || autoplayTimer) return;
+    autoplayTimer = setInterval(() => goTo(activeIndex + 1), AUTOPLAY_INTERVAL_MS);
+  }
+
+  /** Pausa el autoplay y programa su reanudación tras un breve respiro. */
+  function pauseAndScheduleResume() {
+    stopAutoplay();
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(startAutoplay, RESUME_DELAY_MS);
+  }
+
   cards.forEach((card, index) => {
     card.addEventListener('click', () => {
       if (index === activeIndex) {
         expanded = !expanded;
+        render();
       } else {
-        activeIndex = index;
-        expanded = false;
+        goTo(index);
       }
-      render();
+      pauseAndScheduleResume();
     });
   });
 
   dots.forEach((dot, index) => {
     dot.addEventListener('click', () => {
-      activeIndex = index;
-      expanded = false;
-      render();
+      goTo(index);
+      pauseAndScheduleResume();
     });
   });
 
+  const stageEl = rootEl.parentElement;
+  stageEl?.querySelector('[data-case-nav="prev"]')?.addEventListener('click', () => {
+    goTo(activeIndex - 1);
+    pauseAndScheduleResume();
+  });
+  stageEl?.querySelector('[data-case-nav="next"]')?.addEventListener('click', () => {
+    goTo(activeIndex + 1);
+    pauseAndScheduleResume();
+  });
+
+  attachDragGesture(rootEl, {
+    onStart() {
+      stopAutoplay();
+      clearTimeout(resumeTimer);
+      rootEl.classList.add('is-dragging');
+    },
+    onEnd(deltaX, dragged) {
+      rootEl.classList.remove('is-dragging');
+      if (dragged && Math.abs(deltaX) > SWIPE_THRESHOLD_PX) {
+        goTo(activeIndex + (deltaX < 0 ? 1 : -1));
+      }
+      pauseAndScheduleResume();
+    },
+  });
+
   render();
+  startAutoplay();
 }

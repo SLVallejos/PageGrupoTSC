@@ -85,7 +85,7 @@ section[id] {
 
 .grid--2,
 .grid--3 {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .grid--centered {
@@ -99,8 +99,8 @@ section[id] {
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
   z-index: var(--z-header);
-  width: 100%;
   transition: background-color var(--transition-base), box-shadow var(--transition-base);
 }
 

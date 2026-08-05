@@ -23,7 +23,7 @@ export function initHomePage() {
   initTabs(qs('#tech-tablist'), { orientation: 'horizontal' });
   initTechShowcase(qs('#tech-panel-wrap'), qs('#tech-tablist'));
   initAccordion(qs('#faq-accordion'));
-  createCarousel(qs('#projects-carousel'));
+  createCarousel(qs('#projects-carousel'), qs('#projects-carousel-dots'));
   initCaseCarousel(qs('#case-carousel'), qs('#case-carousel-dots'));
   initContactForm(qs('#contact-form'));
 }
