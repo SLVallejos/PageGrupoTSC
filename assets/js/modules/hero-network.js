@@ -12,8 +12,8 @@ import { debounce, prefersReducedMotion } from '../utils.js';
 
 const PARTICLE_COUNT = 55;
 const ICON_TYPES = ['camera', 'shield', 'monitor', 'phone', 'laptop'];
-const ICON_COUNT_PER_TYPE = 2;
-const CONNECT_DISTANCE = 140;
+const ICON_COUNT_PER_TYPE = 3;
+const CONNECT_DISTANCE = 150;
 const PARTICLE_SPEED = 0.4;
 const SPIRAL_STRENGTH = 55;
 const SPIRAL_MAX = 0.5;
@@ -39,7 +39,7 @@ function createParticles(width, height) {
     y: Math.random() * height,
     vx: (Math.random() - 0.5) * PARTICLE_SPEED,
     vy: (Math.random() - 0.5) * PARTICLE_SPEED,
-    radius: Math.random() * 1.6 + 1.4,
+    radius: Math.random() * 2 + 2,
     icon: null,
   }));
 
@@ -68,14 +68,16 @@ function createBits(width, height) {
   }));
 }
 
-function drawIcon(ctx, type, x, y, color) {
-  const s = 6;
+function drawIcon(ctx, type, x, y, color, glowColor) {
+  const s = 10;
   ctx.save();
   ctx.translate(x, y);
   ctx.strokeStyle = color;
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = 2;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = glowColor;
 
   switch (type) {
     case 'camera':
@@ -183,8 +185,8 @@ export function initHeroNetwork(canvas) {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < CONNECT_DISTANCE) {
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(1 - dist / CONNECT_DISTANCE) * 0.5})`;
-          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(1 - dist / CONNECT_DISTANCE) * 0.75})`;
+          ctx.lineWidth = 1;
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
           ctx.stroke();
@@ -192,16 +194,17 @@ export function initHeroNetwork(canvas) {
       }
     }
 
+    const glowColor = `rgb(${r}, ${g}, ${b})`;
     particles.forEach((particle) => {
       if (particle.icon) {
-        drawIcon(ctx, particle.icon, particle.x, particle.y, `rgba(${r}, ${g}, ${b}, 0.9)`);
+        drawIcon(ctx, particle.icon, particle.x, particle.y, `rgba(${r}, ${g}, ${b}, 1)`, glowColor);
         return;
       }
       ctx.beginPath();
       ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = `rgb(${r}, ${g}, ${b})`;
+      ctx.fillStyle = glowColor;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = glowColor;
       ctx.fill();
       ctx.shadowBlur = 0;
     });

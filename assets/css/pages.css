@@ -50,19 +50,19 @@
   height: 100%;
   width: 100%;
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .hero__overlay {
   position: absolute;
   inset: 0;
-  background-color: color-mix(in srgb, var(--color-ink-900) 80%, transparent);
+  background-color: color-mix(in srgb, var(--color-ink-900) 40%, transparent);
 }
 
 .hero__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(6, 13, 26, 0.75) 0%, transparent 75%);
+  background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(6, 13, 26, 0.55) 0%, transparent 75%);
 }
 
 .hero__content {
