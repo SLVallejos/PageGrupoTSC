@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "grupotsc-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "4321", "."],
       "port": 4321
     }
   ]

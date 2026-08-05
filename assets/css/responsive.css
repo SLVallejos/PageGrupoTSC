@@ -26,11 +26,6 @@
     display: flex;
   }
 
-  .tech-panel {
-    flex-direction: row;
-    text-align: left;
-  }
-
   .tab-list--vertical {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -147,6 +142,18 @@
   .solutions-panel-media {
     order: 2;
     height: 300px;
+  }
+
+  .tech-split {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+
+  .tech-split__copy {
+    order: 1;
+  }
+
+  .tech-visual {
+    order: 2;
   }
 }
 

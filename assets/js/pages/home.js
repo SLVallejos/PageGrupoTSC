@@ -4,6 +4,7 @@ import { initAnimations } from '../animations.js';
 import { initHeroNetwork } from '../modules/hero-network.js';
 import { initBrandsMarquee } from '../modules/brands-marquee.js';
 import { initTabs } from '../modules/tabs.js';
+import { initTechShowcase } from '../modules/tech-showcase.js';
 import { initAccordion } from '../modules/accordion.js';
 import { createCarousel } from '../modules/carousel.js';
 import { initCaseCarousel } from '../modules/case-carousel.js';
@@ -20,6 +21,7 @@ export function initHomePage() {
   initHeroNetwork(qs('#hero-network'));
   initBrandsMarquee(qs('#brands-track'));
   initTabs(qs('#tech-tablist'), { orientation: 'horizontal' });
+  initTechShowcase(qs('#tech-panel-wrap'), qs('#tech-tablist'));
   initTabs(qs('#solutions-tablist'), { orientation: 'vertical' });
   initAccordion(qs('#faq-accordion'));
   createCarousel(qs('#projects-carousel'));

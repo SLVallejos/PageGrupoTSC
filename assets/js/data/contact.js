@@ -21,6 +21,7 @@ export const contact = {
     { value: 'acceso', label: 'Control de Acceso' },
     { value: 'fibra', label: 'Fibra Óptica' },
     { value: 'wifi', label: 'WiFi Empresarial' },
+    { value: 'telefonia', label: 'Telefonía IP' },
     { value: 'soporte', label: 'Soporte Técnico' },
     { value: 'otro', label: 'Otro' },
   ],

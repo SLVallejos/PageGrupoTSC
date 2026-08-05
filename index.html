@@ -342,104 +342,441 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
           <span>Telefonía IP</span>
         </button>
-        <button type="button" class="tab-button" role="tab" id="tab-t-fibra" aria-controls="panel-t-fibra" aria-selected="false" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 4-4V7"/></svg>
-          <span>Fibra Óptica</span>
+        <button type="button" class="tab-button" role="tab" id="tab-t-soporte" aria-controls="panel-t-soporte" aria-selected="false" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-3a9 9 0 0 1 18 0v3"/><path d="M21 14a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3v4Z"/><path d="M3 14a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H3v4Z"/></svg>
+          <span>Soporte Técnico</span>
         </button>
       </div>
 
-      <div class="glass-card tab-panel-wrap">
+      <div id="tech-panel-wrap" class="glass-card tab-panel-wrap tab-panel-wrap--tech">
         <div class="tab-panel is-active" id="panel-t-cctv" role="tabpanel" aria-labelledby="tab-t-cctv" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8Z"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">Videovigilancia IP (CCTV)</h3>
-              <p class="tech-panel__text">Instalamos sistemas de cámaras IP de alta definición con grabación continua, visión nocturna y acceso remoto desde cualquier dispositivo. Ideal para fábricas, comercios, edificios y espacios públicos.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Hikvision & Dahua</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Cámaras domo, bala y PTZ</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>NVR y almacenamiento en nube</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Monitoreo remoto 24/7</span>
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">Videovigilancia IP (CCTV)</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Zonas sin control visual y siniestros que se descubren tarde, sin evidencia grabada para reclamos.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Cámaras IP HD con visión nocturna</li>
+                    <li>Grabación continua en NVR o nube</li>
+                    <li>Acceso remoto desde cualquier dispositivo</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Monitoreo en tiempo real y evidencia grabada las 24 horas, desde el celular.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">H</span>Hikvision</button>
+                  <div class="tech-chip__tip" role="tooltip">Cámaras y NVR de alta resolución — la marca que más instalamos.</div>
+                </div>
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">D</span>Dahua</button>
+                  <div class="tech-chip__tip" role="tooltip">Alternativa robusta para proyectos de gran escala.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">PTZ motorizadas</button>
+                  <div class="tech-chip__tip" role="tooltip">Cámaras que giran e inclinan para cubrir áreas amplias.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">Grabación en la nube</button>
+                  <div class="tech-chip__tip" role="tooltip">Respaldo redundante además del NVR local.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="cctv" data-message="Hola, quisiera solicitar asesoramiento y cotización para un sistema de CCTV / Videovigilancia IP.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Solicitar Cotización de CCTV
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="cctv">
+                <div class="tv-vms">
+                  <div class="tv-vms__tile"><span class="tv-vms__rec">REC</span></div>
+                  <div class="tv-vms__tile"><span class="tv-vms__rec">REC</span></div>
+                  <div class="tv-vms__tile"><span class="tv-vms__rec">REC</span></div>
+                  <div class="tv-vms__tile"><span class="tv-vms__rec">REC</span></div>
+                </div>
+                <p class="tv-status">4 cámaras en línea · <strong>Grabando</strong></p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-t-redes" role="tabpanel" aria-labelledby="tab-t-redes" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v3M5 16v-1a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">Infraestructura de Redes LAN/WAN</h3>
-              <p class="tech-panel__text">Diseño, instalación y certificación de redes cableadas e inalámbricas para entornos corporativos e industriales. Trabajamos con switches administrables, routers y electrónica de red de primer nivel.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Cisco & Ubiquiti</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Switches administrables</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>VLANs y segmentación</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Certificación Cat6 / Cat6A</span>
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">Infraestructura de Redes LAN/WAN</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Cortes de red y una topología desordenada que ralentiza la operación y complica cada mantenimiento.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Cableado Cat6 / Cat6A certificado</li>
+                    <li>Switches administrables y VLANs</li>
+                    <li>Documentación y etiquetado del rack</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Red estable y escalable que sostiene el crecimiento sin rediseñar desde cero.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">C</span>Cisco</button>
+                  <div class="tech-chip__tip" role="tooltip">Switches y routers de nivel empresarial.</div>
+                </div>
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">U</span>Ubiquiti</button>
+                  <div class="tech-chip__tip" role="tooltip">Buena relación costo-beneficio para pymes e industria.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">Cat6A</button>
+                  <div class="tech-chip__tip" role="tooltip">Certificación de cableado con capacidad hasta 10 Gbps.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">VLANs</button>
+                  <div class="tech-chip__tip" role="tooltip">Segmentación de tráfico por área o tipo de dispositivo.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="redes" data-message="Hola, quisiera solicitar asesoramiento y cotización para infraestructura de red (cableado y electrónica).">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Cotizar Infraestructura de Red
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="redes">
+                <div class="tv-rack">
+                  <div class="tv-rack__unit"><span class="tv-rack__led tv-rack__led--on"></span><span class="tv-rack__label">Switch administrable 24p</span><span class="tv-rack__ports"><span class="is-active"></span><span></span><span class="is-active"></span><span class="is-active"></span><span></span><span class="is-active"></span><span></span><span class="is-active"></span></span></div>
+                  <div class="tv-rack__unit"><span class="tv-rack__led tv-rack__led--on"></span><span class="tv-rack__label">Patch panel Cat6A</span></div>
+                  <div class="tv-rack__unit"><span class="tv-rack__led tv-rack__led--blink"></span><span class="tv-rack__label">Router perimetral</span><span class="tv-rack__ports"><span class="is-active"></span><span></span><span class="is-active"></span><span class="is-active"></span><span></span><span class="is-active"></span><span></span><span class="is-active"></span></span></div>
+                  <div class="tv-rack__unit"><span class="tv-rack__led tv-rack__led--on"></span><span class="tv-rack__label">UPS de respaldo</span></div>
+                </div>
+                <p class="tv-rack__throughput">Tráfico actual <strong data-role="value">— Mbps</strong></p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-t-wifi" role="tabpanel" aria-labelledby="tab-t-wifi" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">WiFi Empresarial de Alta Densidad</h3>
-              <p class="tech-panel__text">Cobertura total sin puntos ciegos para plantas de producción, oficinas y espacios abiertos. Roaming inteligente entre access points, segmentación de red y administración centralizada.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Ubiquiti UniFi</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Estudios de cobertura</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Red de invitados segura</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Gestión centralizada</span>
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">WiFi Empresarial de Alta Densidad</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Zonas muertas de señal y saturación en horas pico que frenan la operación diaria.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Access points de alta densidad</li>
+                    <li>Roaming inteligente entre equipos</li>
+                    <li>Red de invitados segmentada</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Cobertura total sin puntos ciegos, incluso con cientos de dispositivos conectados.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">U</span>Ubiquiti UniFi</button>
+                  <div class="tech-chip__tip" role="tooltip">Gestión centralizada de todos los access points.</div>
+                </div>
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">M</span>Mikrotik</button>
+                  <div class="tech-chip__tip" role="tooltip">Ideal para redes con requerimientos avanzados de ruteo.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">Mapa de calor</button>
+                  <div class="tech-chip__tip" role="tooltip">Estudio de cobertura previo a la instalación.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="wifi" data-message="Hola, quisiera solicitar asesoramiento y cotización para WiFi empresarial de alta densidad.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Cotizar WiFi Empresarial
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="wifi">
+                <div class="tv-wifi">
+                  <span class="tv-wifi__ring tv-wifi__ring--1"></span><span class="tv-wifi__ring tv-wifi__ring--2"></span><span class="tv-wifi__ring tv-wifi__ring--3"></span>
+                  <span class="tv-wifi__device tv-wifi__device--1"></span><span class="tv-wifi__device tv-wifi__device--2"></span><span class="tv-wifi__device tv-wifi__device--3"></span>
+                  <div class="tv-wifi__ap tv-wifi__ap--1"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg></div>
+                  <div class="tv-wifi__ap tv-wifi__ap--2"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg></div>
+                  <div class="tv-wifi__ap tv-wifi__ap--3"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg></div>
+                </div>
+                <p class="tv-status">Dispositivos conectados ahora <strong data-role="value">0</strong></p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-t-acceso" role="tabpanel" aria-labelledby="tab-t-acceso" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h3M15 12h3M6 18c0-1.7 1.3-3 3-3s3 1.3 3 3"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">Control de Acceso Biométrico</h3>
-              <p class="tech-panel__text">Sistemas de acceso con tarjeta, PIN, huella dactilar y reconocimiento facial para controlar el ingreso a sectores sensibles. Registro de horarios e integración con CCTV.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Biometría y RFID</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Barreras y molinetes</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Registro de asistencia</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Integración con CCTV</span>
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">Control de Acceso Biométrico</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Ingresos no controlados a sectores sensibles, sin registro de quién entra y sale.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Biometría y tarjetas RFID</li>
+                    <li>Reconocimiento facial</li>
+                    <li>Integración con el CCTV existente</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Trazabilidad completa de accesos y restricción por horarios sin intervención manual.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">H</span>Hikvision</button>
+                  <div class="tech-chip__tip" role="tooltip">Terminales biométricas integradas con CCTV.</div>
+                </div>
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">Z</span>ZKTeco</button>
+                  <div class="tech-chip__tip" role="tooltip">Especialistas en control de presentismo y accesos.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">RFID</button>
+                  <div class="tech-chip__tip" role="tooltip">Tarjetas y llaveros de proximidad.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="acceso" data-message="Hola, quisiera solicitar asesoramiento y cotización para control de acceso.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Cotizar Control de Acceso
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="acceso">
+                <div class="tv-access">
+                  <div class="tv-access__reader" data-role="reader"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+                  <div class="tv-access__log" data-role="log">
+                    <div class="tv-access__row"><span>J. Pérez — Planta</span><span>Concedido</span></div>
+                    <div class="tv-access__row"><span>Depósito 08:42</span><span>Concedido</span></div>
+                    <div class="tv-access__row is-denied"><span>Desconocido</span><span>Denegado</span></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-t-telefonia" role="tabpanel" aria-labelledby="tab-t-telefonia" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">Telefonía IP y VoIP</h3>
-              <p class="tech-panel__text">Centralitas IP, teléfonos SIP y soluciones de comunicación unificada para reemplazar la telefonía tradicional. Llamadas internas gratuitas, gestión de colas y grabación de llamadas.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Centralitas Asterisk / FreePBX</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Teléfonos SIP Grandstream</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Softphones y app móvil</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Grabación de llamadas</span>
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">Telefonía IP y VoIP</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Costos altos de telefonía tradicional y cero visibilidad sobre la atención al cliente.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Centralitas IP (Asterisk / FreePBX)</li>
+                    <li>Teléfonos SIP y softphones</li>
+                    <li>Grabación y colas de llamadas</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Comunicación unificada con menor costo y trazabilidad de cada llamada.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">G</span>Grandstream</button>
+                  <div class="tech-chip__tip" role="tooltip">Teléfonos SIP de uso corporativo.</div>
+                </div>
+                <div class="tech-chip tech-chip--brand">
+                  <button type="button" class="tech-chip__btn"><span class="tech-chip__mark">Y</span>Yealink</button>
+                  <div class="tech-chip__tip" role="tooltip">Alternativa premium para salas de reunión.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">FreePBX</button>
+                  <div class="tech-chip__tip" role="tooltip">Central telefónica open-source, sin licencias por usuario.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="telefonia" data-message="Hola, quisiera solicitar asesoramiento y cotización para telefonía IP / VoIP.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Cotizar Telefonía IP
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="telefonia">
+                <div class="tv-phone">
+                  <div class="tv-phone__call">
+                    <span class="tv-phone__label">Llamada en curso</span>
+                    <strong>Sucursal Centro — Int. 104</strong>
+                    <div class="tv-phone__wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    <span class="tv-phone__timer" data-role="timer">00:00</span>
+                  </div>
+                  <div class="tv-phone__exts">
+                    <div class="tv-phone__ext"><span class="tv-dot tv-dot--busy"></span><span class="tv-phone__ext-name">Recepción — 100</span><span class="tv-phone__ext-status">En llamada</span></div>
+                    <div class="tv-phone__ext"><span class="tv-dot tv-dot--available"></span><span class="tv-phone__ext-name">Ventas — 102</span><span class="tv-phone__ext-status">Disponible</span></div>
+                    <div class="tv-phone__ext"><span class="tv-dot tv-dot--offline"></span><span class="tv-phone__ext-name">Soporte — 105</span><span class="tv-phone__ext-status">Fuera de línea</span></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="tab-panel" id="panel-t-fibra" role="tabpanel" aria-labelledby="tab-t-fibra" tabindex="0">
-          <div class="tech-panel">
-            <div class="tech-panel__icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 4-4V7"/></svg></div>
-            <div>
-              <h3 class="tech-panel__title">Tendido y Fusión de Fibra Óptica</h3>
-              <p class="tech-panel__text">Instalación de enlaces troncales de alta velocidad para interconectar edificios, plantas y sucursales. Fusionamos fibra monomodo y multimodo con equipamiento de última generación.</p>
-              <div class="tech-panel__tags">
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Fusiones por arco voltaico</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Monomodo y multimodo</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Hasta 10 Gbps</span>
-                <span class="tech-panel__tag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Diagnóstico OTDR</span>
+        <div class="tab-panel" id="panel-t-soporte" role="tabpanel" aria-labelledby="tab-t-soporte" tabindex="0">
+          <div class="tech-split">
+            <div class="tech-split__copy">
+              <h3 class="tech-split__title">Soporte Técnico y Help Desk</h3>
+
+              <div class="tech-spec tech-spec--problem">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Problema que resuelve</div>
+                  <p>Fallas que se acumulan sin resolverse, tickets sin seguimiento y ningún proveedor que responda fuera de horario.</p>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--scope">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4Z"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Alcance del servicio</div>
+                  <ul class="tech-spec__list">
+                    <li>Mesa de ayuda remota con diagnóstico inmediato</li>
+                    <li>Mantenimiento preventivo y correctivo programado</li>
+                    <li>Guardias técnicas de emergencia 24/7 (abonados)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tech-spec tech-spec--benefit">
+                <div class="tech-spec__icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c2.5 2.5 4 6 4 10 0 2-1 4-1 4H9s-1-2-1-4c0-4 1.5-7.5 4-10Z"/><circle cx="12" cy="9" r="1.5"/><path d="m9 16-2 4 3-1M15 16l2 4-3-1"/></svg></div>
+                <div class="tech-spec__body">
+                  <div class="tech-spec__label">Beneficio clave</div>
+                  <p>Un solo número para resolver cualquier incidencia, con tiempos de respuesta comprometidos.</p>
+                </div>
+              </div>
+
+              <div class="tech-chips">
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">Mesa de ayuda remota</button>
+                  <div class="tech-chip__tip" role="tooltip">Resolución de incidencias sin esperar una visita técnica.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">SLA de respuesta</button>
+                  <div class="tech-chip__tip" role="tooltip">Tiempos de atención comprometidos según el plan contratado.</div>
+                </div>
+                <div class="tech-chip tech-chip--feature">
+                  <button type="button" class="tech-chip__btn">Guardias 24/7</button>
+                  <div class="tech-chip__tip" role="tooltip">Exclusivas para clientes con abono técnico activo.</div>
+                </div>
+              </div>
+
+              <a href="#contacto" class="btn btn-secondary tech-cta" data-service="soporte" data-message="Hola, quisiera solicitar información sobre planes de soporte técnico y guardias de emergencia.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Solicitar Soporte Técnico
+              </a>
+            </div>
+
+            <div class="tech-visual">
+              <div class="tech-visual__bar"><span></span><span></span><span></span></div>
+              <div class="tech-visual__body" data-live="soporte">
+                <div class="tv-help__agent">
+                  <span class="tv-help__avatar"><span class="tv-help__avatar-dot"></span></span>
+                  <span class="tv-help__agent-text"><strong>En línea ahora</strong>Técnico asignándose a tickets</span>
+                </div>
+                <div class="tv-help__ticket">
+                  <div class="tv-help__row"><span class="tv-help__id">#1042</span><span class="tv-help__desc">Switch caído — Planta 2</span><span class="tv-help__status tv-help__status--progress">En curso</span></div>
+                  <div class="tv-help__row"><span class="tv-help__id">#1041</span><span class="tv-help__desc">Cámara sin señal — Depósito</span><span class="tv-help__status tv-help__status--done">Resuelto</span></div>
+                  <div class="tv-help__row" data-role="ticket-row"><span class="tv-help__id">#1040</span><span class="tv-help__desc">Consulta SAP — Usuario nuevo</span><span class="tv-help__status tv-help__status--open" data-role="ticket-status">Abierto</span></div>
+                </div>
+                <p class="tv-help__sla">Tiempo de respuesta promedio <strong>&lt; 2 hs</strong></p>
               </div>
             </div>
           </div>
@@ -858,7 +1195,7 @@
           <p class="contact-note"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg> Guardias técnicas 24/7 exclusivas para clientes con abono activo.</p>
         </div>
 
-        <div class="glass-card contact-panel reveal-right">
+        <div class="glass-card contact-panel contact-panel--form reveal-right">
           <form id="contact-form" class="contact-form" data-endpoint="https://formspree.io/f/xpqgwkql" novalidate>
             <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="form-honeypot" aria-hidden="true" />
 
@@ -871,6 +1208,7 @@
                 <option value="acceso">Control de Acceso</option>
                 <option value="fibra">Fibra Óptica</option>
                 <option value="wifi">WiFi Empresarial</option>
+                <option value="telefonia">Telefonía IP</option>
                 <option value="soporte">Soporte Técnico</option>
                 <option value="otro">Otro</option>
               </select>

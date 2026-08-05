@@ -37,6 +37,7 @@
   --color-success-dark: #059669;  /* emerald-600 */
   --color-error: #fca5a5;         /* red-300 */
   --color-error-strong: #dc2626;  /* red-600 */
+  --color-warn: #f0997b;          /* coral, estado "en curso" / atención */
   --color-whatsapp: #25d366;
 
   /* ---- Tipografía ---- */
