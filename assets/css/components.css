@@ -948,6 +948,59 @@
   animation: tv-blink 1.4s infinite;
 }
 
+.tv-vms__scene {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.tv-vms__label {
+  position: absolute;
+  bottom: var(--space-1-5);
+  left: var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--color-ink-950) 55%, transparent);
+  padding: 1px var(--space-1-5);
+  font-size: 9px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-mutedest);
+  letter-spacing: 0.02em;
+}
+
+.tv-vms__motion {
+  position: absolute;
+  top: 22%;
+  left: 26%;
+  width: 48%;
+  height: 56%;
+  border: 2px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  pointer-events: none;
+}
+
+.tv-vms__motion.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.tv-vms__motion-tag {
+  position: absolute;
+  top: -18px;
+  left: -2px;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-success);
+  padding: 1px var(--space-1-5);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-950);
+}
+
 .tv-status {
   text-align: center;
   font-size: var(--text-xs);

@@ -11,6 +11,20 @@ import { qs, qsa, clamp, prefersReducedMotion } from '../utils.js';
 
 const ACCESS_NAMES = ['M. Gómez — Oficinas', 'Depósito 09:15', 'R. Torres — Planta', 'Recepción 10:03', 'Desconocido'];
 
+function startCctvMotion(container, registerInterval, registerTimeout) {
+  const boxes = qsa('.tv-vms__motion', container);
+  if (!boxes.length) return;
+
+  const trigger = () => {
+    const box = boxes[Math.floor(Math.random() * boxes.length)];
+    box.classList.add('is-active');
+    registerTimeout(setTimeout(() => box.classList.remove('is-active'), 1800));
+  };
+
+  registerTimeout(setTimeout(trigger, 600));
+  registerInterval(setInterval(trigger, 3400));
+}
+
 function startRackThroughput(container, registerInterval) {
   const valueEl = qs('[data-role="value"]', container);
   if (!valueEl) return;
@@ -97,6 +111,7 @@ function scheduleTicketUpdate(container, registerInterval, registerTimeout) {
 }
 
 const LIVE_STARTERS = {
+  cctv: startCctvMotion,
   redes: startRackThroughput,
   wifi: startWifiCount,
   acceso: scheduleAccessEvent,
