@@ -194,22 +194,6 @@
   padding: var(--space-1) var(--space-3);
 }
 
-.callout {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3-5);
-  border-radius: var(--radius-2xl);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 10%, transparent);
-  background: linear-gradient(
-    to bottom right,
-    color-mix(in srgb, var(--color-accent) 10%, transparent),
-    color-mix(in srgb, var(--color-ink-800) 40%, transparent)
-  );
-  padding: var(--space-5);
-  font-size: var(--text-sm);
-  color: var(--color-text-soft);
-}
-
 .skip-link {
   position: absolute;
   top: 0;
@@ -691,25 +675,6 @@
   .tab-panel {
     animation: none;
   }
-}
-
-/* Variante lateral usada por Soluciones: grid de 1-2 columnas hasta lg,
-   luego pasa a columna única en sidebar (ver responsive.css) */
-
-.tab-list--vertical {
-  display: grid;
-  grid-template-columns: 1fr;
-  flex-wrap: initial;
-  gap: var(--space-2-5);
-}
-
-.tab-list--vertical .tab-button {
-  border-radius: var(--radius-2xl);
-  text-align: left;
-}
-
-.tab-list--vertical .tab-button[aria-selected='true'] {
-  background-color: color-mix(in srgb, var(--color-ink-800) 80%, transparent);
 }
 
 /* Contenido del panel de Tecnologías: ficha técnica + mockup visual */

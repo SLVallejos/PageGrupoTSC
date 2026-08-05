@@ -22,7 +22,6 @@ export function initHomePage() {
   initBrandsMarquee(qs('#brands-track'));
   initTabs(qs('#tech-tablist'), { orientation: 'horizontal' });
   initTechShowcase(qs('#tech-panel-wrap'), qs('#tech-tablist'));
-  initTabs(qs('#solutions-tablist'), { orientation: 'vertical' });
   initAccordion(qs('#faq-accordion'));
   createCarousel(qs('#projects-carousel'));
   initCaseCarousel(qs('#case-carousel'), qs('#case-carousel-dots'));

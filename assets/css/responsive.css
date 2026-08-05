@@ -118,32 +118,6 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .solutions-layout {
-    grid-template-columns: 320px 1fr;
-  }
-
-  .tab-list--vertical {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .tab-list--vertical .tab-button[aria-selected='true'] {
-    transform: translateX(6px);
-  }
-
-  .solutions-panel-grid {
-    grid-template-columns: 1.2fr 0.8fr;
-  }
-
-  .solutions-panel-text {
-    order: 1;
-  }
-
-  .solutions-panel-media {
-    order: 2;
-    height: 300px;
-  }
-
   .tech-split {
     grid-template-columns: 1.15fr 0.85fr;
   }
