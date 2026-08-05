@@ -39,6 +39,15 @@
     font-size: var(--text-lg);
   }
 
+  .case-card {
+    width: 280px;
+    padding: var(--space-6);
+  }
+
+  .case-card--side {
+    display: block;
+  }
+
   .section-heading__title {
     font-size: var(--text-4xl);
   }

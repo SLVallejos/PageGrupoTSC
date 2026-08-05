@@ -2,18 +2,16 @@
 // Si cambiás algo acá, actualizá también la sección #casos-exito en index.html.
 export const caseStudies = [
   {
-    icon: 'tools',
-    badge: 'Soporte Continuo',
+    badge: 'Soporte industrial y funcional SAP',
     logo: 'marcas/gestamp_logo.webp',
     logoAlt: 'Logo Gestamp',
-    challenge: 'Mantener la continuidad operativa y resolver incidencias de hardware/software en entornos de producción industrial exigentes.',
-    solution: 'Servicio de soporte técnico especializado, mantenimiento preventivo y diagnóstico rápido de fallas en terminales críticas.',
-    resultPrefix: 'Optimización de tiempos de respuesta y ',
-    resultMetric: 'alta disponibilidad',
-    resultSuffix: ' en los puestos de trabajo del sector corporativo y de planta.',
+    challenge: 'Sostener la operación de planta sin cortes y, en paralelo, resolver las consultas funcionales de SAP de los equipos de producción y administración.',
+    solution: 'Soporte técnico especializado en piso de planta —hardware, redes y terminales industriales— junto con soporte funcional de SAP para usuarios de planta y oficina.',
+    resultPrefix: 'Un mismo proveedor cubre ',
+    resultMetric: 'lo técnico y lo funcional',
+    resultSuffix: ': continuidad operativa en planta y respuesta ágil a los usuarios de SAP.',
   },
   {
-    icon: 'network',
     badge: 'Infraestructura Alta Velocidad',
     logo: 'marcas/nobis_logo.webp',
     logoAlt: 'Logo Nobis',
@@ -24,7 +22,6 @@ export const caseStudies = [
     resultSuffix: ' que garantiza el flujo rápido de historias clínicas e información sensible.',
   },
   {
-    icon: 'landmark',
     badge: 'Conectividad Institucional',
     logo: 'marcas/cba_cultura_logo_light.webp',
     logoAlt: 'Logo Cordoba Cultura',
@@ -35,7 +32,6 @@ export const caseStudies = [
     resultSuffix: ' para el desarrollo de tareas institucionales diarias.',
   },
   {
-    icon: 'server',
     badge: 'Infraestructura y Soporte Técnico',
     logo: 'agec_logo.jpg',
     logoAlt: 'Logo AGEC',

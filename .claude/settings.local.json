@@ -8,7 +8,15 @@
       "Bash(git rm *)",
       "Bash(rmdir assets/video)",
       "Bash(python3 -)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "mcp__visualize__read_me",
+      "Bash(base64 -w0 marcas/gestamp_logo.webp)",
+      "Bash(base64 -w0 marcas/nobis_logo.webp)",
+      "Bash(base64 -w0 marcas/cba_cultura_logo_light.webp)",
+      "Bash(base64 -w0 agec_logo.jpg)",
+      "Bash(sed -i 's|__GESTAMP_DATAURI__|__TRACKED_VAR__|; s|__NOBIS_DATAURI__|__TRACKED_VAR__|; s|__CBA_DATAURI__|__TRACKED_VAR__|; s|__AGEC_DATAURI__|__TRACKED_VAR__|' casos-exito-opcionA.html)"
     ]
   }
 }
