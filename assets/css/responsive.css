@@ -1,0 +1,166 @@
+/**
+ * Todos los breakpoints del sitio en un solo lugar, mobile-first y en orden
+ * ascendente (sm 640 · md 768 · lg 1024 · xl 1280 — mismos valores que
+ * usaba Tailwind por defecto). Se carga al final: en empates de
+ * especificidad, gana por orden de aparición.
+ */
+
+@media (min-width: 640px) {
+  .grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .brand__name {
+    display: inline;
+  }
+
+  .scroll-indicator {
+    display: flex;
+  }
+
+  .carousel-btn {
+    display: flex;
+  }
+
+  .tech-panel {
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .tab-list--vertical {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .accordion-trigger__question {
+    font-size: var(--text-lg);
+  }
+
+  .section-heading__title {
+    font-size: var(--text-4xl);
+  }
+
+  .about-title {
+    font-size: var(--text-4xl);
+  }
+
+  .brands-marquee-heading {
+    font-size: var(--text-4xl);
+  }
+
+  .contact-map-iframe {
+    height: 380px;
+  }
+
+  .login-card,
+  .contact-panel,
+  .contact-location,
+  .tab-panel-wrap {
+    padding: var(--space-10);
+  }
+
+  .hero__actions .btn {
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .brand__logo {
+    height: var(--space-16);
+  }
+
+  .navbar {
+    padding-block: var(--space-3-5);
+  }
+
+  .carousel-slide {
+    width: 50%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .nav-menu {
+    position: static;
+    display: flex;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-3);
+    border: none;
+    background: transparent;
+    padding-block: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .nav-menu__item--cta {
+    margin-top: 0;
+    margin-left: var(--space-1);
+  }
+
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .solutions-layout {
+    grid-template-columns: 320px 1fr;
+  }
+
+  .tab-list--vertical {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tab-list--vertical .tab-button[aria-selected='true'] {
+    transform: translateX(6px);
+  }
+
+  .solutions-panel-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+
+  .solutions-panel-text {
+    order: 1;
+  }
+
+  .solutions-panel-media {
+    order: 2;
+    height: 300px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .nav-menu {
+    gap: var(--space-6);
+  }
+
+  .nav-link {
+    padding-inline: var(--space-2);
+  }
+}
+
+/**
+ * Utilidades de estado — cargan últimas a propósito para ganar por orden de
+ * cascada ante cualquier clase de componente con la misma especificidad
+ * (ej. `.login-form { display: flex }` en pages.css).
+ */
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.is-hidden {
+  display: none;
+}

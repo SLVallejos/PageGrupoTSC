@@ -1,0 +1,224 @@
+/**
+ * Layout: base temática del documento (html/body), estructura del header,
+ * footer, contenedores y grillas. Estilos mobile-first — los ajustes por
+ * breakpoint (sm/md/lg/xl) viven en responsive.css, no acá.
+ */
+
+/* ---------- Base del documento ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ink-900);
+  background-image: var(--gradient-radial-brand);
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+section[id] {
+  scroll-margin-top: var(--header-height, 90px);
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  color: var(--color-white);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+::placeholder {
+  color: var(--color-muted);
+  opacity: 0.8;
+}
+
+/* ---------- Contenedores y ritmo vertical ---------- */
+
+.container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+  max-width: var(--container-6xl);
+}
+
+.container--sm {
+  max-width: var(--container-md);
+}
+
+.container--md {
+  max-width: var(--container-4xl);
+}
+
+.container--lg {
+  max-width: var(--container-5xl);
+}
+
+.section {
+  padding-block: var(--space-20);
+}
+
+.section--sm {
+  padding-block: var(--space-16);
+}
+
+.section--lg {
+  padding-block: var(--space-24);
+}
+
+/* ---------- Grillas reutilizables ---------- */
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.grid--2,
+.grid--3 {
+  grid-template-columns: 1fr;
+}
+
+.grid--centered {
+  max-width: var(--container-2xl);
+  margin-inline: auto;
+}
+
+/* ---------- Header ---------- */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-header);
+  width: 100%;
+  transition: background-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.site-header--scrolled {
+  background-color: color-mix(in srgb, var(--color-ink-950) 95%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-lg);
+}
+
+.navbar {
+  margin-inline: auto;
+  display: flex;
+  max-width: var(--container-6xl);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+}
+
+.brand__logo {
+  height: var(--space-14);
+  width: auto;
+  object-fit: contain;
+  transition: transform var(--transition-base);
+}
+
+.brand:hover .brand__logo {
+  transform: scale(1.05);
+}
+
+.brand__name {
+  display: none;
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+}
+
+.nav-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
+  background-color: color-mix(in srgb, var(--color-ink-950) 98%, transparent);
+  padding-block: var(--space-6);
+  text-align: center;
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+}
+
+.nav-menu.is-open {
+  display: flex;
+}
+
+.nav-menu__item--cta {
+  margin-top: var(--space-2);
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
+  background-color: var(--color-ink-950);
+  padding: var(--space-16) var(--space-5);
+  text-align: center;
+}
+
+.site-footer__logo {
+  width: 100%;
+  max-width: 220px;
+  object-fit: contain;
+  transition: transform var(--transition-base);
+}
+
+.site-footer__logo:hover {
+  transform: scale(1.03);
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--space-6);
+  row-gap: var(--space-2);
+}
+
+.footer-links a {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  transition: color var(--transition-base);
+}
+
+.footer-links a:hover {
+  color: var(--color-accent);
+}
+
+.site-footer__tagline {
+  max-width: var(--container-md);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.site-footer__copyright {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}

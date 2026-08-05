@@ -1,0 +1,190 @@
+/**
+ * Todo lo que se mueve: scroll-reveal, marquee de marcas, ícono de
+ * hamburguesa e indicador de scroll del Hero. `animations.js` sólo agrega o
+ * quita clases (`is-visible`, `is-open`) — la animación en sí vive acá.
+ */
+
+/* ---------- Scroll reveal (antes GSAP + ScrollTrigger) ---------- */
+
+.reveal,
+.reveal-left,
+.reveal-right {
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-32px);
+  transition-duration: 0.8s;
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(32px);
+  transition-duration: 0.8s;
+}
+
+.reveal.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- Marquee de marcas ---------- */
+
+.brands-marquee-heading {
+  margin-bottom: var(--space-10);
+  text-align: center;
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-accent);
+}
+
+.brands-marquee {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-block: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-ink-800) 20%, transparent),
+    color-mix(in srgb, var(--color-ink-700) 20%, transparent)
+  );
+  padding-block: var(--space-8);
+  mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+}
+
+.brands-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: brands-scroll 30s linear infinite;
+}
+
+.brands-marquee:hover .brands-marquee__track,
+.brands-marquee:focus-within .brands-marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes brands-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.brands-marquee__item {
+  display: flex;
+  height: 5rem;
+  width: 200px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-9);
+}
+
+.brands-marquee__item img {
+  max-height: 50px;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: 0.4;
+  filter: grayscale(1) brightness(0) invert(1);
+  transition: all var(--transition-base);
+}
+
+.brands-marquee__item img:hover {
+  transform: scale(1.1);
+  opacity: 1;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brands-marquee__track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* ---------- Ícono de menú (hamburguesa -> X) ---------- */
+
+.menu-toggle {
+  position: relative;
+  z-index: var(--z-dropdown);
+  display: flex;
+  height: var(--space-11);
+  width: var(--space-11);
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-base);
+}
+
+.menu-toggle:hover {
+  background-color: color-mix(in srgb, var(--color-white) 5%, transparent);
+}
+
+.hamburger-bar {
+  display: block;
+  height: 2px;
+  width: 1.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-text);
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.menu-toggle[aria-expanded='true'] .hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded='true'] .hamburger-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle[aria-expanded='true'] .hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ---------- Indicador de scroll del Hero ---------- */
+
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translate(-50%, -8%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translate(-50%, 0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-indicator {
+    animation: gentle-bounce 1.5s infinite;
+  }
+}

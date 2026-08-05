@@ -1,0 +1,137 @@
+/**
+ * Design tokens — única fuente de verdad para color, tipografía, espaciado,
+ * radios, sombras y z-index. Ningún otro archivo CSS debe usar valores
+ * "mágicos"; todo se referencia desde acá con var(--token).
+ *
+ * Los tonos con opacidad (ej. "accent al 10%") no se guardan como variables
+ * duplicadas: se resuelven en el punto de uso con color-mix(), ej.
+ *   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+ * Es el equivalente moderno a los modificadores `/10` de Tailwind, sin
+ * mantener un token hex y otro rgb en paralelo.
+ */
+
+:root {
+  /* ---- Color: superficie (ink) ---- */
+  --color-ink-950: #050c16;
+  --color-ink-900: #060d1a;
+  --color-ink-800: #0b1726;
+  --color-ink-700: #122036;
+
+  /* ---- Color: acento ---- */
+  --color-accent: #38bdf8;
+  --color-accent-dark: #0284c7;
+  --color-accent-light: #7dd3fc;
+
+  /* ---- Color: texto y neutros ---- */
+  --color-text: #f8fafc;       /* slate-50, texto principal sobre fondo oscuro */
+  --color-text-soft: #f1f5f9;  /* slate-100 */
+  --color-text-softer: #e2e8f0;/* slate-200 */
+  --color-text-mutedest: #cbd5e1; /* slate-300 */
+  --color-muted: #94a3b8;      /* slate-400, texto secundario */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* ---- Color: estado ---- */
+  --color-success: #34d399;       /* emerald-400 */
+  --color-success-strong: #10b981;/* emerald-500 */
+  --color-success-dark: #059669;  /* emerald-600 */
+  --color-error: #fca5a5;         /* red-300 */
+  --color-error-strong: #dc2626;  /* red-600 */
+  --color-whatsapp: #25d366;
+
+  /* ---- Tipografía ---- */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  /* ---- Espaciado (misma escala que se usaba vía utilidades Tailwind) ---- */
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
+  --space-3: 0.75rem;
+  --space-3-5: 0.875rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-11: 2.75rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* ---- Radios ---- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* ---- Sombras ---- */
+  --shadow-glow: 0 0 30px rgba(56, 189, 248, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  /* ---- Fondo radial de marca (usado en <body>) ---- */
+  --gradient-radial-brand:
+    radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 15% 50%, rgba(3, 105, 161, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 70% 80%, rgba(56, 189, 248, 0.12) 0%, transparent 40%);
+
+  /* ---- Contenedores ---- */
+  --container-md: 28rem;    /* max-w-md, login */
+  --container-xl: 36rem;    /* max-w-xl */
+  --container-2xl: 42rem;   /* max-w-2xl */
+  --container-3xl: 48rem;   /* max-w-3xl */
+  --container-4xl: 56rem;   /* max-w-4xl */
+  --container-5xl: 64rem;   /* max-w-5xl */
+  --container-6xl: 72rem;   /* max-w-6xl */
+
+  /* ---- Transiciones ---- */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+
+  /* ---- Z-index ---- */
+  --z-dropdown: 10;
+  --z-header: 1000;
+  --z-whatsapp: 1000;
+  --z-skiplink: 9999;
+
+  /* Altura real del header, la fija navbar.js en tiempo de ejecución */
+  --header-height: 90px;
+}
+
+/*
+ * Breakpoints de referencia (no expresables como var() dentro de @media
+ * en CSS estándar; se repiten literalmente en responsive.css):
+ * sm: 640px · md: 768px · lg: 1024px · xl: 1280px
+ */

@@ -1,0 +1,59 @@
+// Contenido de referencia: los 6 tabs y paneles van como HTML estático en
+// index.html (tabs.js sólo togglea visibilidad, no genera contenido). Si
+// cambiás algo acá, actualizá también la sección #especializados en index.html.
+export const solutions = [
+  {
+    id: 'cableado',
+    label: 'Cableado Estructurado',
+    icon: 'network',
+    title: 'Cableado Estructurado Profesional',
+    text: 'Diseño e implementación de infraestructura de red física bajo estándares internacionales para garantizar máxima velocidad, estabilidad y escalabilidad.',
+    benefits: ['Tendidos Cat 6, Cat 6A y Cat 7.', 'Armado y organización profesional de racks.', 'Certificación oficial de puntos de red.'],
+    image: 'soluciones/cableado-estructurado.webp',
+  },
+  {
+    id: 'fibra',
+    label: 'Fibra Óptica',
+    icon: 'route',
+    title: 'Enlaces de Fibra Óptica',
+    text: 'Tendido, fusión y certificación de enlaces de alta velocidad para interconectar edificios, plantas industriales y oficinas.',
+    benefits: ['Fusiones por arco voltaico.', 'Soluciones monomodo y multimodo.', 'Diagnóstico y reparación de enlaces.'],
+    image: 'soluciones/Fibra-Optica.webp',
+  },
+  {
+    id: 'wifi',
+    label: 'WiFi Empresarial',
+    icon: 'wifi',
+    title: 'Conectividad WiFi Empresarial',
+    text: 'Redes inalámbricas corporativas con roaming inteligente, cobertura total y administración centralizada.',
+    benefits: ['Access Points Ubiquiti y Aruba.', 'Redes de invitados seguras.', 'Estudios de cobertura y mapas de calor.'],
+    image: 'soluciones/Wi-Fi.webp',
+  },
+  {
+    id: 'cctv',
+    label: 'Sistemas de CCTV',
+    icon: 'video',
+    title: 'Sistemas de CCTV Avanzados',
+    text: 'Videovigilancia IP para empresas, industrias, comercios y complejos corporativos.',
+    benefits: ['Cámaras Full HD y 4K.', 'Alertas inteligentes al celular.', 'Grabación segura y monitoreo remoto.'],
+    image: 'soluciones/Camaras-CCTV.webp',
+  },
+  {
+    id: 'acceso',
+    label: 'Control de Acceso',
+    icon: 'idCard',
+    title: 'Control de Acceso',
+    text: 'Soluciones biométricas y electrónicas para controlar ingresos, egresos y sectores críticos.',
+    benefits: ['Reconocimiento facial y huella.', 'Restricción por horarios.', 'Reportes y presentismo.'],
+    image: 'soluciones/Control-De-Acceso.webp',
+  },
+  {
+    id: 'telefonia',
+    label: 'Telefonía IP',
+    icon: 'phone',
+    title: 'Telefonía IP Corporativa',
+    text: 'Soluciones VoIP modernas para optimizar comunicaciones, reducir costos y mejorar la atención al cliente.',
+    benefits: ['Centrales 3CX y Asterisk.', 'IVR y colas de atención.', 'Integración con teléfonos IP y apps móviles.'],
+    image: 'soluciones/Telefonia-IP.webp',
+  },
+];

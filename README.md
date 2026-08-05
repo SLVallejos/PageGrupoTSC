@@ -1,35 +1,66 @@
-# Grupo TSC — Web (Astro + React islands + Tailwind)
+# Grupo TSC — Web (HTML5 + CSS3 + JavaScript vanilla)
 
-Migración del sitio institucional de Grupo TSC desde HTML/CSS/JS puro a Astro,
-manteniendo 1:1 el contenido, copy, imágenes y SEO del sitio original, con
-arquitectura componentizada y diseño elevado. Ver `PROPUESTA_MIGRACION_GrupoTSC.md`
-(carpeta raíz de la entrega) para el diagnóstico completo, la justificación del
-stack y el plan de migración por fases.
+Sitio institucional de Grupo TSC en HTML5, CSS3 y JavaScript ES6+ puro — sin
+frameworks, sin librerías de UI y sin paso de build. Migrado desde una versión
+previa en Astro + React islands + Tailwind, preservando 1:1 el contenido, el
+diseño, las animaciones y la funcionalidad.
 
 ## Requisitos
 
-- Node.js 18.17+ (recomendado 20 o 22)
+Ninguno para producción: es HTML/CSS/JS estático, servible desde cualquier
+hosting (Netlify, GitHub Pages, S3, un Apache/Nginx, etc.).
 
-## Uso
+Para desarrollo local hace falta servir la carpeta por HTTP (los `<script
+type="module">` no cargan de forma confiable abriendo el archivo directo con
+doble clic en todos los navegadores):
 
 ```bash
-npm install
-npm run dev       # servidor de desarrollo en http://localhost:4321
-npm run build     # build de producción en ./dist
-npm run preview   # sirve el build de ./dist localmente
+npx serve .
+# o
+python -m http.server 8000
 ```
 
 ## Estructura
 
-- `src/data/` — todo el contenido de texto (servicios, proyectos, FAQ, etc.), separado de la presentación.
-- `src/layouts/BaseLayout.astro` — `<head>`, metadata SEO, Open Graph, JSON-LD.
-- `src/components/layout/` — Navbar, Footer, botón de WhatsApp.
-- `src/components/sections/` — una sección de la página por archivo `.astro`.
-- `src/components/islands/` — los únicos 5 componentes con JavaScript en el cliente (tabs de Tecnologías, tabs de Soluciones, carrusel de Proyectos, acordeón de FAQ, formulario de Contacto).
-- `src/components/ui/` — piezas reutilizables (`Card`, `SectionHeading`, mapa de íconos).
-- `src/scripts/reveal.js` — animaciones de scroll-reveal y contadores con GSAP.
+```
+index.html          # home (one-pager)
+login.html           # portal de clientes (stub)
+robots.txt, sitemap.xml, site.webmanifest
+
+assets/
+  css/
+    reset.css         # reset moderno, sin colores
+    variables.css      # design tokens: color, tipografía, espaciado, radios, sombras
+    layout.css          # base del documento, header, footer, contenedores, grillas
+    components.css       # botones, cards, tabs, acordeón, carrusel, formulario, etc.
+    pages.css             # estilos de un solo uso (Hero, Login, bloques puntuales)
+    animations.css         # scroll-reveal, marquee, ícono de menú
+    responsive.css          # todos los breakpoints, en orden ascendente
+
+  js/
+    app.js              # entry point, detecta la página por body[data-page]
+    utils.js             # helpers genéricos (qs, qsa, debounce, clamp...)
+    icons.js              # registro de íconos SVG inline (sin lucide-react)
+    animations.js          # scroll-reveal + contadores (IntersectionObserver)
+    modules/                # comportamiento de cada pieza interactiva
+    pages/                   # wiring de home.js / login.js
+    data/                     # contenido de referencia (ver nota abajo)
+
+  img/, video/, icons/    # assets estáticos
+```
+
+### Sobre `assets/js/data/`
+
+Estos archivos existían en la versión Astro como fuente de contenido para el
+build. Como ahora no hay build, **el contenido real vive directo en
+`index.html`/`login.html`** (mejor SEO y funciona sin JavaScript). Cada
+archivo de datos quedó como referencia documentada — si cambiás un texto,
+actualizalo en el archivo de datos *y* a mano en el HTML correspondiente
+(cada uno indica en su comentario de cabecera qué sección tocar).
 
 ## Pendiente para producción
 
-- Reemplazar `site` en `astro.config.mjs` y las URLs de `robots.txt` / `sitemap.xml` / `BaseLayout.astro` por el dominio final.
-- Revisar `public/sitemap.xml` si se agregan páginas nuevas (hoy es un sitio de una sola página).
+- Reemplazar el dominio de ejemplo (`https://www.grupotsc.com.ar/`) en
+  `index.html`, `login.html`, `robots.txt` y `sitemap.xml` si cambia.
+- Revisar `sitemap.xml` si se agregan páginas nuevas (hoy es un sitio de una
+  sola página + login).
