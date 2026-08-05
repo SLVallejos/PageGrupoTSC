@@ -2,6 +2,7 @@ import { qs } from '../utils.js';
 import { initNavbar } from '../modules/navbar.js';
 import { initAnimations } from '../animations.js';
 import { initHeroNetwork } from '../modules/hero-network.js';
+import { initBrandsMarquee } from '../modules/brands-marquee.js';
 import { initTabs } from '../modules/tabs.js';
 import { initAccordion } from '../modules/accordion.js';
 import { createCarousel } from '../modules/carousel.js';
@@ -17,6 +18,7 @@ export function initHomePage() {
   initNavbar();
   initAnimations();
   initHeroNetwork(qs('#hero-network'));
+  initBrandsMarquee(qs('#brands-track'));
   initTabs(qs('#tech-tablist'), { orientation: 'horizontal' });
   initTabs(qs('#solutions-tablist'), { orientation: 'vertical' });
   initAccordion(qs('#faq-accordion'));
