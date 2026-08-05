@@ -43,14 +43,14 @@
   text-align: center;
 }
 
-.hero__video {
+.hero__network {
   position: absolute;
   inset: 0;
   z-index: 0;
   height: 100%;
   width: 100%;
-  object-fit: cover;
   pointer-events: none;
+  opacity: 0.8;
 }
 
 .hero__overlay {

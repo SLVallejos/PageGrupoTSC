@@ -1,19 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git init *)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(mkdir -p assets/img/marcas assets/img/proyectos assets/img/soluciones assets/video assets/icons)",
-      "Bash(cp public/img/tsc_logo.webp assets/img/)",
-      "Bash(cp public/img/og_image.jpg assets/img/)",
-      "Bash(cp public/img/agec_logo.jpg assets/img/)",
-      "Bash(cp public/img/marcas/*.webp assets/img/marcas/)",
+      "Read(//c/Users/Leonel/Downloads/**)",
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(git restore *)",
       "Bash(git rm *)",
-      "Bash(xargs wc -l)",
-      "Bash(git remote *)",
-      "Bash(git fetch *)",
-      "Bash(git ls-remote *)"
+      "Bash(rmdir assets/video)",
+      "Bash(python3 -)",
+      "Bash(git add *)"
     ]
   }
 }

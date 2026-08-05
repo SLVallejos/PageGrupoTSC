@@ -1,6 +1,7 @@
 import { qs } from '../utils.js';
 import { initNavbar } from '../modules/navbar.js';
 import { initAnimations } from '../animations.js';
+import { initHeroNetwork } from '../modules/hero-network.js';
 import { initTabs } from '../modules/tabs.js';
 import { initAccordion } from '../modules/accordion.js';
 import { createCarousel } from '../modules/carousel.js';
@@ -14,6 +15,7 @@ import { initContactForm } from '../modules/contact-form.js';
 export function initHomePage() {
   initNavbar();
   initAnimations();
+  initHeroNetwork(qs('#hero-network'));
   initTabs(qs('#tech-tablist'), { orientation: 'horizontal' });
   initTabs(qs('#solutions-tablist'), { orientation: 'vertical' });
   initAccordion(qs('#faq-accordion'));
