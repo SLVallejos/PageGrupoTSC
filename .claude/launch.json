@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "grupotsc-dev",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "4321", "."],
+      "runtimeExecutable": "D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe",
+      "runtimeArgs": ["-S", "localhost:4321", "-t", "public", "public/index.php"],
       "port": 4321
     }
   ]

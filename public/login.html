@@ -92,12 +92,12 @@
 
         <form id="login-form" class="login-form" novalidate>
           <div class="field">
-            <label for="login-user" class="field__label field__label--form">Usuario o email</label>
+            <label for="login-email" class="field__label field__label--form">Email</label>
             <div class="field-group">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              <input id="login-user" name="user" type="text" autocomplete="username" required maxlength="254" class="field-group__input" placeholder="nombre@empresa.com" aria-required="true" aria-invalid="false" aria-describedby="error-login-user" />
+              <input id="login-email" name="email" type="email" autocomplete="email" required maxlength="254" class="field-group__input" placeholder="nombre@empresa.com" aria-required="true" aria-invalid="false" aria-describedby="error-login-email" />
             </div>
-            <span id="error-login-user" class="field__error" role="alert"></span>
+            <span id="error-login-email" class="field__error" role="alert"></span>
           </div>
 
           <div class="field">
@@ -111,7 +111,7 @@
 
           <button type="submit" class="btn btn-primary btn--block">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            Ingresar
+            <span data-submit-label>Ingresar</span>
           </button>
         </form>
 
@@ -120,15 +120,7 @@
           Conexión segura · tus datos están protegidos
         </p>
 
-        <div id="login-notice" class="login-notice">
-          <p>
-            <strong>Estamos preparando el Portal de Clientes.</strong>
-            Muy pronto vas a poder crear y hacer seguimiento de tus tickets desde acá. Mientras tanto, escribinos y te ayudamos al instante.
-          </p>
-          <a href="https://wa.me/5493525536785?text=Hola%20Grupo%20TSC,%20vi%20su%20sitio%20web%20y%20quisiera%20asesoramiento." target="_blank" rel="noopener" class="btn btn-secondary btn--block btn--sm">
-            Escribirnos por WhatsApp
-          </a>
-        </div>
+        <div id="login-notice" class="login-notice" role="alert"></div>
 
         <a href="index.html" class="login-back-link">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>

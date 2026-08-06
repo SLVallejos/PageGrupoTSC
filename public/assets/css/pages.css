@@ -443,12 +443,10 @@
   display: block;
 }
 
-.login-notice p {
-  margin-bottom: var(--space-3);
-}
-
-.login-notice strong {
-  color: var(--color-text);
+.login-notice--error {
+  border-color: color-mix(in srgb, var(--color-error-strong) 35%, transparent);
+  background-color: color-mix(in srgb, var(--color-error-strong) 10%, transparent);
+  color: #fecaca;
 }
 
 .login-back-link {

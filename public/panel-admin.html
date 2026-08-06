@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administración | Grupo TSC</title>
+
+  <link rel="icon" href="assets/icons/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#060d1a" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" />
+
+  <link rel="stylesheet" href="assets/css/reset.css" />
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <link rel="stylesheet" href="assets/css/panels.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+</head>
+<body data-page="panel-admin">
+  <a href="#panel-main" class="skip-link">Saltar al contenido principal</a>
+
+  <!-- ===== Inicio Header de Panel ===== -->
+  <header class="site-header site-header--scrolled">
+    <nav class="navbar" aria-label="Navegación del panel">
+      <a href="index.html#inicio" class="brand" aria-label="Grupo TSC - ir al inicio">
+        <img src="assets/img/tsc_logo.webp" alt="Grupo TSC" width="320" height="213" class="brand__logo" decoding="async" />
+        <span class="brand__name">Grupo TSC</span>
+      </a>
+      <div class="panel-header__user">
+        <span>Hola, <strong id="panel-user-name">—</strong></span>
+        <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+      </div>
+    </nav>
+  </header>
+  <!-- ===== Fin Header de Panel ===== -->
+
+  <main id="panel-main" class="panel-main container">
+    <!-- ===== Inicio Sección Tickets ===== -->
+    <section aria-label="Tickets de soporte">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Panel de administración</span>
+        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Tickets de Soporte</h1>
+      </div>
+
+      <div id="tickets-alert" class="panel-alert" role="alert"></div>
+
+      <div class="glass-card panel-filters">
+        <div class="field">
+          <label for="filter-estado" class="field__label field__label--form">Estado</label>
+          <select id="filter-estado" class="field__input">
+            <option value="">Todos</option>
+            <option value="ABIERTO">Abierto</option>
+            <option value="EN_CURSO">En curso</option>
+            <option value="RESUELTO">Resuelto</option>
+            <option value="CERRADO">Cerrado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-prioridad" class="field__label field__label--form">Prioridad</label>
+          <select id="filter-prioridad" class="field__input">
+            <option value="">Todas</option>
+            <option value="BAJA">Baja</option>
+            <option value="MEDIA">Media</option>
+            <option value="ALTA">Alta</option>
+            <option value="URGENTE">Urgente</option>
+          </select>
+        </div>
+        <label class="panel-filters__checkbox">
+          <input type="checkbox" id="filter-asignados" />
+          Solo mis tickets tomados
+        </label>
+      </div>
+
+      <div id="tickets-list" class="tickets-list"></div>
+      <p id="tickets-status" class="panel-status">Cargando tickets…</p>
+
+      <div class="panel-pagination">
+        <button type="button" id="tickets-prev" class="btn btn-secondary btn--sm">Anterior</button>
+        <span id="tickets-page-info">Página 1</span>
+        <button type="button" id="tickets-next" class="btn btn-secondary btn--sm">Siguiente</button>
+      </div>
+    </section>
+    <!-- ===== Fin Sección Tickets ===== -->
+
+    <!-- ===== Inicio Sección Usuarios ===== -->
+    <section aria-label="Administración de usuarios">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Administración</span>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Usuarios</h2>
+      </div>
+
+      <div id="usuarios-alert" class="panel-alert" role="alert"></div>
+
+      <form id="crear-usuario-form" class="glass-card panel-form" novalidate>
+        <div class="field">
+          <label for="nuevo-nombre" class="field__label field__label--form">Nombre</label>
+          <input id="nuevo-nombre" name="nombre" class="field__input" required maxlength="150" placeholder="Nombre y apellido" />
+        </div>
+        <div class="field">
+          <label for="nuevo-email" class="field__label field__label--form">Email</label>
+          <input id="nuevo-email" name="email" type="email" class="field__input" required maxlength="254" placeholder="nombre@empresa.com" />
+        </div>
+        <div class="field">
+          <label for="nuevo-password" class="field__label field__label--form">Contraseña</label>
+          <input id="nuevo-password" name="password" type="password" class="field__input" required minlength="6" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <button type="submit" class="btn btn-primary">Crear cliente</button>
+      </form>
+
+      <div id="usuarios-list" class="usuarios-list"></div>
+      <p id="usuarios-status" class="panel-status">Cargando usuarios…</p>
+    </section>
+    <!-- ===== Fin Sección Usuarios ===== -->
+  </main>
+
+  <script type="module" src="assets/js/pages/panel-admin.js"></script>
+</body>
+</html>

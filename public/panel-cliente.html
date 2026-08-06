@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis Tickets | Grupo TSC</title>
+
+  <link rel="icon" href="assets/icons/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#060d1a" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" />
+
+  <link rel="stylesheet" href="assets/css/reset.css" />
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <link rel="stylesheet" href="assets/css/panels.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+</head>
+<body data-page="panel-cliente">
+  <a href="#panel-main" class="skip-link">Saltar al contenido principal</a>
+
+  <!-- ===== Inicio Header de Panel ===== -->
+  <header class="site-header site-header--scrolled">
+    <nav class="navbar" aria-label="Navegación del panel">
+      <a href="index.html#inicio" class="brand" aria-label="Grupo TSC - ir al inicio">
+        <img src="assets/img/tsc_logo.webp" alt="Grupo TSC" width="320" height="213" class="brand__logo" decoding="async" />
+        <span class="brand__name">Grupo TSC</span>
+      </a>
+      <div class="panel-header__user">
+        <span>Hola, <strong id="panel-user-name">—</strong></span>
+        <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+      </div>
+    </nav>
+  </header>
+  <!-- ===== Fin Header de Panel ===== -->
+
+  <main id="panel-main" class="panel-main container container--lg">
+    <!-- ===== Inicio Sección Crear Ticket ===== -->
+    <section aria-label="Crear ticket de soporte">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Portal de clientes</span>
+        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Crear Ticket</h1>
+        <p class="section-heading__subtitle" style="margin-left:0;">Contanos qué necesitás y le vamos a hacer seguimiento hasta resolverlo.</p>
+      </div>
+
+      <div id="crear-alert" class="panel-alert" role="alert"></div>
+
+      <form id="crear-ticket-form" class="glass-card panel-form" novalidate style="grid-template-columns: 2fr 1fr auto;">
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="ticket-titulo" class="field__label field__label--form">Título</label>
+          <input id="ticket-titulo" name="titulo" class="field__input" required maxlength="200" placeholder="Ej: No tengo conexión en depósito" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="ticket-descripcion" class="field__label field__label--form">Descripción</label>
+          <textarea id="ticket-descripcion" name="descripcion" class="field__input" required style="min-height:90px;" placeholder="Contanos el detalle: qué pasa, desde cuándo, a quién afecta…"></textarea>
+        </div>
+        <div class="field">
+          <label for="ticket-prioridad" class="field__label field__label--form">Prioridad</label>
+          <select id="ticket-prioridad" name="prioridad" class="field__input">
+            <option value="BAJA">Baja</option>
+            <option value="MEDIA" selected>Media</option>
+            <option value="ALTA">Alta</option>
+            <option value="URGENTE">Urgente</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear ticket</button>
+      </form>
+    </section>
+    <!-- ===== Fin Sección Crear Ticket ===== -->
+
+    <!-- ===== Inicio Sección Mis Tickets ===== -->
+    <section aria-label="Mis tickets">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Seguimiento</span>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mis Tickets</h2>
+      </div>
+
+      <div id="tickets-list" class="tickets-list"></div>
+      <p id="tickets-status" class="panel-status">Cargando tickets…</p>
+
+      <div class="panel-pagination">
+        <button type="button" id="tickets-prev" class="btn btn-secondary btn--sm">Anterior</button>
+        <span id="tickets-page-info">Página 1</span>
+        <button type="button" id="tickets-next" class="btn btn-secondary btn--sm">Siguiente</button>
+      </div>
+    </section>
+    <!-- ===== Fin Sección Mis Tickets ===== -->
+  </main>
+
+  <script type="module" src="assets/js/pages/panel-cliente.js"></script>
+</body>
+</html>

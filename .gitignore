@@ -2,3 +2,11 @@ node_modules/
 dist/
 .astro/
 .env
+
+vendor/
+storage/*
+!storage/.gitkeep
+logs/*
+!logs/.gitkeep
+cache/*
+!cache/.gitkeep

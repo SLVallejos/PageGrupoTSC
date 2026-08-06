@@ -16,7 +16,11 @@
       "Bash(base64 -w0 marcas/nobis_logo.webp)",
       "Bash(base64 -w0 marcas/cba_cultura_logo_light.webp)",
       "Bash(base64 -w0 agec_logo.jpg)",
-      "Bash(sed -i 's|__GESTAMP_DATAURI__|__TRACKED_VAR__|; s|__NOBIS_DATAURI__|__TRACKED_VAR__|; s|__CBA_DATAURI__|__TRACKED_VAR__|; s|__AGEC_DATAURI__|__TRACKED_VAR__|' casos-exito-opcionA.html)"
+      "Bash(sed -i 's|__GESTAMP_DATAURI__|__TRACKED_VAR__|; s|__NOBIS_DATAURI__|__TRACKED_VAR__|; s|__CBA_DATAURI__|__TRACKED_VAR__|; s|__AGEC_DATAURI__|__TRACKED_VAR__|' casos-exito-opcionA.html)",
+      "Bash(npx --version)",
+      "Bash(node -e ' *)",
+      "Bash(cp .env.example .env)",
+      "Bash(timeout 15 node -e ' *)"
     ]
   }
 }

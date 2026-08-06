@@ -1,0 +1,317 @@
+/**
+ * Estilos de los paneles internos (panel-admin.html, panel-cliente.html).
+ * No se cargan en el sitio publico -- son pantallas autenticadas propias,
+ * asi que este archivo no pesa nada para un visitante comun.
+ */
+
+/* ====================================
+   HEADER DE PANEL
+==================================== */
+
+.panel-header__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+.panel-header__user strong {
+  color: var(--color-accent-light);
+}
+
+.panel-main {
+  padding-top: calc(var(--header-height) + var(--space-10));
+  padding-bottom: var(--space-20);
+}
+
+/* ====================================
+   ESTADO DE CARGA / VACIO / ERROR
+==================================== */
+
+.panel-status {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.panel-alert {
+  display: none;
+  align-items: center;
+  gap: var(--space-2-5);
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-error-strong) 35%, transparent);
+  background-color: color-mix(in srgb, var(--color-error-strong) 10%, transparent);
+  padding: var(--space-3-5) var(--space-4);
+  font-size: var(--text-sm);
+  color: #fecaca;
+}
+
+.panel-alert.is-visible {
+  display: flex;
+}
+
+.panel-alert--success {
+  border-color: color-mix(in srgb, var(--color-success-dark) 35%, transparent);
+  background-color: color-mix(in srgb, var(--color-success-dark) 10%, transparent);
+  color: #a7f3d0;
+}
+
+/* ====================================
+   FILTROS
+==================================== */
+
+.panel-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+}
+
+.panel-filters .field {
+  min-width: 160px;
+}
+
+.panel-filters__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+/* ====================================
+   BADGES DE ESTADO / PRIORIDAD
+==================================== */
+
+.badge--estado,
+.badge--prioridad {
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge--estado-abierto { color: var(--color-accent-light); background-color: color-mix(in srgb, var(--color-accent) 16%, transparent); }
+.badge--estado-en_curso { color: var(--color-warn); background-color: color-mix(in srgb, var(--color-warn) 16%, transparent); }
+.badge--estado-resuelto { color: var(--color-success); background-color: color-mix(in srgb, var(--color-success) 16%, transparent); }
+.badge--estado-cerrado { color: var(--color-muted); background-color: color-mix(in srgb, var(--color-white) 8%, transparent); }
+
+.badge--prioridad-baja { color: var(--color-muted); background-color: color-mix(in srgb, var(--color-white) 8%, transparent); }
+.badge--prioridad-media { color: var(--color-accent-light); background-color: color-mix(in srgb, var(--color-accent) 16%, transparent); }
+.badge--prioridad-alta { color: var(--color-warn); background-color: color-mix(in srgb, var(--color-warn) 16%, transparent); }
+.badge--prioridad-urgente { color: #fca5a5; background-color: color-mix(in srgb, var(--color-error-strong) 18%, transparent); }
+
+/* ====================================
+   LISTA DE TICKETS
+==================================== */
+
+.tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.ticket-card {
+  padding: var(--space-5);
+  transition: border-color var(--transition-base);
+}
+
+.ticket-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.ticket-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.ticket-card__id {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ticket-card__titulo {
+  flex: 1;
+  min-width: 180px;
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.ticket-card__meta {
+  margin-top: var(--space-1-5);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.ticket-card__toggle {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform var(--transition-base);
+}
+
+.ticket-card.is-open .ticket-card__toggle {
+  transform: rotate(180deg);
+}
+
+.ticket-card__body {
+  display: none;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 8%, transparent);
+}
+
+.ticket-card.is-open .ticket-card__body {
+  display: block;
+}
+
+.ticket-card__descripcion {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-soft);
+  white-space: pre-wrap;
+}
+
+.ticket-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.ticket-card__controls .field {
+  min-width: 140px;
+}
+
+/* ====================================
+   COMENTARIOS
+==================================== */
+
+.comment-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  margin-bottom: var(--space-4);
+}
+
+.comment-item {
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--color-white) 3%, transparent);
+  padding: var(--space-3) var(--space-3-5);
+}
+
+.comment-item__meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-accent-light);
+}
+
+.comment-item__meta span:last-child {
+  color: var(--color-muted);
+  font-weight: var(--fw-medium);
+}
+
+.comment-item__texto {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  white-space: pre-wrap;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+}
+
+.comment-form textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+/* ====================================
+   PAGINACION
+==================================== */
+
+.panel-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-16);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+/* ====================================
+   USUARIOS (panel admin)
+==================================== */
+
+.panel-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+  align-items: end;
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+}
+
+.panel-form .btn {
+  height: fit-content;
+}
+
+.usuarios-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+}
+
+.usuario-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.usuario-row__info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.usuario-row__nombre {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.usuario-row__email {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.usuario-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.usuario-row.is-inactivo {
+  opacity: 0.55;
+}
