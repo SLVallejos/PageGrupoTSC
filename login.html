@@ -90,25 +90,35 @@
         <h1 class="login-card__title">Crear Ticket</h1>
         <p class="login-card__subtitle">Ingresá con tu cuenta para crear y hacer seguimiento de tus solicitudes de soporte.</p>
 
-        <form id="login-form" class="login-form">
+        <form id="login-form" class="login-form" novalidate>
           <div class="field">
             <label for="login-user" class="field__label field__label--form">Usuario o email</label>
             <div class="field-group">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              <input id="login-user" name="user" type="text" autocomplete="username" required class="field-group__input" placeholder="nombre@empresa.com" />
+              <input id="login-user" name="user" type="text" autocomplete="username" required maxlength="254" class="field-group__input" placeholder="nombre@empresa.com" aria-required="true" aria-invalid="false" aria-describedby="error-login-user" />
             </div>
+            <span id="error-login-user" class="field__error" role="alert"></span>
           </div>
 
           <div class="field">
             <label for="login-pass" class="field__label field__label--form">Contraseña</label>
             <div class="field-group">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-              <input id="login-pass" name="pass" type="password" autocomplete="current-password" required class="field-group__input" placeholder="••••••••" />
+              <input id="login-pass" name="pass" type="password" autocomplete="current-password" required minlength="6" maxlength="128" class="field-group__input" placeholder="••••••••" aria-required="true" aria-invalid="false" aria-describedby="error-login-pass" />
             </div>
+            <span id="error-login-pass" class="field__error" role="alert"></span>
           </div>
 
-          <button type="submit" class="btn btn-primary btn--block">Ingresar</button>
+          <button type="submit" class="btn btn-primary btn--block">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Ingresar
+          </button>
         </form>
+
+        <p class="login-trust">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Conexión segura · tus datos están protegidos
+        </p>
 
         <div id="login-notice" class="login-notice">
           <p>

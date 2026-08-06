@@ -333,19 +333,61 @@
   overflow: hidden;
   padding: var(--space-32) var(--space-5);
   text-align: center;
+  background-image:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--color-accent) 14%, transparent) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--color-accent) 12%, transparent) 0%, transparent 45%);
 }
 
 .login-card {
+  position: relative;
   margin-inline: auto;
   width: 100%;
   max-width: var(--container-md);
-  padding: var(--space-8);
+  padding: var(--space-9) var(--space-8);
   text-align: center;
+  border-color: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  box-shadow: 0 25px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px color-mix(in srgb, var(--color-accent) 12%, transparent), var(--shadow-glow);
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55%;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.7;
 }
 
 .login-card__icon {
+  position: relative;
   margin-inline: auto;
   margin-bottom: var(--space-5);
+}
+
+.login-card__icon::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  animation: login-icon-pulse 2.4s ease-out infinite;
+}
+
+@keyframes login-icon-pulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card__icon::before {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .login-card__title {
@@ -367,6 +409,21 @@
   flex-direction: column;
   gap: var(--space-4);
   text-align: left;
+}
+
+.login-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  margin-top: var(--space-5);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.login-trust svg {
+  flex-shrink: 0;
+  color: var(--color-success);
 }
 
 .login-notice {

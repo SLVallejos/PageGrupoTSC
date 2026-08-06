@@ -1851,6 +1851,15 @@
 
 .field-group:focus-within {
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.field-group--invalid {
+  border-color: var(--color-error);
+}
+
+.field-group--invalid:focus-within {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 18%, transparent);
 }
 
 .field-group svg {
