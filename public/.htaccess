@@ -1,0 +1,28 @@
+# Front controller para Apache (hosting de producción). El servidor
+# embebido de PHP (`php -S`, desarrollo local) no lee este archivo -- ese
+# usa su propio truco en public/index.php (PHP_SAPI === 'cli-server').
+#
+# El hosting de beta no permite escribir fuera del docroot (usuario FTP
+# restringido a beta/ y www/), así que app/vendor/storage/etc conviven acá
+# adentro en vez de un nivel arriba -- .env también. Bloqueamos el acceso
+# HTTP directo a esos dotfiles como defensa en profundidad (además de que
+# .env, app/, vendor/, storage/, database/, logs/ y cache/ ya tienen su
+# propio .htaccess de bloqueo total).
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+DirectoryIndex index.html index.php
+
+RewriteEngine On
+
+# Los archivos y directorios que existen de verdad (assets/, index.html,
+# robots.txt, etc.) se sirven tal cual, sin pasar por PHP.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

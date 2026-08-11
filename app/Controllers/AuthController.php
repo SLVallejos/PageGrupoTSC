@@ -7,14 +7,14 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Helpers\Validator;
 use App\Middleware\AuthMiddleware;
+use App\Models\AdministradorLocalModel;
 use App\Models\ClienteUsuarioModel;
-use App\Services\FreeScoutService;
 
 /**
- * Login contra dos fuentes distintas (ver docs/freescout-integration-strategy.md):
- * admins reales de FreeScout (`FreeScoutService`) o clientes propios de
- * Grupo TSC (`ClienteUsuarioModel`). La sesión es nativa de PHP (cookie
- * httpOnly), no hay JWT ni token en el cliente.
+ * Login contra dos fuentes propias: administradores/agentes de soporte
+ * (`usuarios_administradores`, creados desde nuestro panel) o clientes
+ * (`usuarios_clientes`). La sesión es nativa de PHP (cookie httpOnly), no
+ * hay JWT ni token en el cliente.
  */
 final class AuthController extends BaseController
 {
@@ -34,8 +34,7 @@ final class AuthController extends BaseController
         $email = (string) $request->input('email');
         $password = (string) $request->input('password');
 
-        $usuario = (new FreeScoutService())->getAdminByEmail($email)
-            ?? (new ClienteUsuarioModel())->findByEmail($email);
+        $usuario = $this->buscarUsuario($email);
 
         if (!$usuario || !password_verify($password, $usuario['passwordHash'])) {
             $this->fail('Email o contraseña incorrectos.', 401);
@@ -49,6 +48,15 @@ final class AuthController extends BaseController
             'email' => $usuario['email'],
             'rol' => $usuario['rol'],
         ];
+        // Perfil de agente (apellido/titulo/nivel/fotoUrl) -- solo lo
+        // devuelve AdministradorLocalModel::findByEmail(); clientes no lo
+        // tienen. Se guarda en sesión para que TicketController::asignar()
+        // pueda snapshotearlo en el ticket sin una consulta aparte.
+        foreach (['apellido', 'titulo', 'nivel', 'fotoUrl'] as $campo) {
+            if (array_key_exists($campo, $usuario)) {
+                $_SESSION['usuario'][$campo] = $usuario[$campo];
+            }
+        }
 
         $this->success(['usuario' => $_SESSION['usuario']]);
     }
@@ -70,6 +78,17 @@ final class AuthController extends BaseController
         session_destroy();
 
         $this->success(null);
+    }
+
+    /** @return array{id:int, nombre:string, email:string, rol:string, passwordHash:string}|null */
+    private function buscarUsuario(string $email): ?array
+    {
+        $usuario = (new AdministradorLocalModel())->findByEmail($email);
+        if ($usuario) {
+            return $usuario;
+        }
+
+        return (new ClienteUsuarioModel())->findByEmail($email);
     }
 
     private function startSession(): void

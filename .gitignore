@@ -10,3 +10,5 @@ logs/*
 !logs/.gitkeep
 cache/*
 !cache/.gitkeep
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep

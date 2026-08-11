@@ -6,8 +6,8 @@ namespace App\Models;
 
 /**
  * Comentarios de un ticket. `autor_nombre` es un snapshot (el autor puede
- * ser un cliente propio o un admin de FreeScout — dos fuentes distintas,
- * sin FK común posible) tomado al momento de comentar.
+ * ser un cliente o un admin, dos tablas distintas sin FK común posible)
+ * tomado al momento de comentar.
  */
 final class TicketComentarioModel extends BaseModel
 {

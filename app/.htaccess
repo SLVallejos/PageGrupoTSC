@@ -1,0 +1,9 @@
+# Nunca debe ser accesible por HTTP directo -- código PHP del backend, no
+# un asset público. Defensa en profundidad además de vivir fuera del
+# docroot en el despliegue recomendado (ver docs/LOCAL_DEV_SETUP.md).
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

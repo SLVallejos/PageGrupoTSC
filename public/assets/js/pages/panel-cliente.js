@@ -1,15 +1,31 @@
 import { qs } from '../utils.js';
-import { requireAuth, apiFetch, logout } from '../modules/api-client.js';
+import { requireAuth, apiFetch, apiUpload, logout, initInactivityLogout } from '../modules/api-client.js';
+import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
 
 /**
  * Panel de cliente: crear tickets y hacer seguimiento de los propios (ver
- * estado/prioridad, leer y responder en el hilo de comentarios). Sin
- * controles de administración -- eso vive solo en panel-admin.js.
+ * estado/prioridad, leer y responder en el hilo de comentarios, subir
+ * adjuntos). Sin controles de administración -- eso vive solo en
+ * panel-admin.js. Un ticket RESUELTO queda de solo lectura: se muestra la
+ * solución y se ocultan los forms de comentar/adjuntar.
  */
 
-const ESTADOS = { ABIERTO: 'Abierto', EN_CURSO: 'En curso', RESUELTO: 'Resuelto', CERRADO: 'Cerrado' };
+const ESTADOS = { NEW: 'Nuevo', EN_PROCESO: 'En proceso', RESUELTO: 'Resuelto' };
 const PRIORIDADES = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', URGENTE: 'Urgente' };
+const SLA_LABELS = { OK: 'SLA OK', PROXIMO: 'SLA próximo', VENCIDO: 'SLA vencido', CUMPLIDO: 'SLA cumplido', FUERA_PLAZO: 'Fuera de plazo' };
+const EVENTO_LABELS = {
+  CREADO: 'Ticket creado',
+  ASIGNADO: 'Ticket asignado',
+  LIBERADO: 'Ticket liberado',
+  ESTADO: 'Cambio de estado',
+  PRIORIDAD: 'Cambio de prioridad',
+  ESCALADO: 'Escalado',
+  COMENTARIO: 'Comentario',
+  RESUELTO: 'Ticket resuelto',
+};
 const PAGE_SIZE = 10;
+const ADJUNTOS_ACEPTADOS = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
+const INACTIVIDAD_TIMEOUT_MS = 15 * 60 * 1000;
 
 let ticketsPage = 1;
 let ticketsTotalPages = 1;
@@ -32,6 +48,16 @@ function mostrarAlerta(elId, mensaje, tipo = 'error') {
   if (tipo === 'success') setTimeout(() => el.classList.remove('is-visible'), 4000);
 }
 
+/** Avatar del agente que atiende el ticket: foto si tiene, si no un círculo con su inicial. */
+function avatarHtml(fotoUrl, nombre, tamano = 'sm') {
+  const claseTamano = `avatar--${tamano}`;
+  if (fotoUrl) {
+    return `<img src="${fotoUrl}" alt="" class="avatar ${claseTamano}" />`;
+  }
+  const inicial = (nombre || '?').trim().charAt(0).toUpperCase() || '?';
+  return `<span class="avatar-fallback ${claseTamano}">${escapeHtml(inicial)}</span>`;
+}
+
 /* ====================================
    CREAR TICKET
 ==================================== */
@@ -44,6 +70,7 @@ function initCrearTicket() {
       titulo: form.titulo.value.trim(),
       descripcion: form.descripcion.value.trim(),
       prioridad: form.prioridad.value,
+      categoriaId: form.categoriaId.value || null,
     };
     const res = await apiFetch('/api/tickets', { method: 'POST', body });
     if (!res.ok) {
@@ -58,6 +85,17 @@ function initCrearTicket() {
   });
 }
 
+/** Poblar el selector de categoría al crear ticket -- solo activas (el cliente no ve inactivas). */
+async function cargarCategoriasSelect() {
+  const res = await apiFetch('/api/categorias');
+  if (!res.ok) return;
+
+  const select = qs('#ticket-categoria');
+  select.innerHTML =
+    '<option value="">Sin categoría</option>' +
+    res.data.map((c) => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+}
+
 /* ====================================
    MIS TICKETS
 ==================================== */
@@ -65,30 +103,70 @@ function initCrearTicket() {
 function ticketCardHtml(t) {
   const estadoClase = `badge--estado-${t.estado.toLowerCase()}`;
   const prioridadClase = `badge--prioridad-${t.prioridad.toLowerCase()}`;
-  const asignado = t.asignadoANombre ? `Lo está atendiendo ${escapeHtml(t.asignadoANombre)}` : 'Todavía sin asignar';
+  const slaClase = `badge--sla-${t.slaEstado.toLowerCase()}`;
+  const asignado = t.asignadoANombre
+    ? `Lo está atendiendo ${avatarHtml(t.asignadoAFotoUrl, t.asignadoANombre, 'sm')} ${escapeHtml(t.asignadoANombre)}${t.asignadoATitulo ? ` · ${escapeHtml(t.asignadoATitulo)}` : ''}`
+    : 'Todavía sin asignar';
+  const resuelto = t.estado === 'RESUELTO';
 
   return `
-    <article class="glass-card ticket-card" data-id="${t.id}">
+    <article class="glass-card ticket-card${resuelto ? ' ticket-card--resuelto' : ''}" data-id="${t.id}">
       <div class="ticket-card__head" data-action="toggle">
         <span class="ticket-card__id">#${t.id}</span>
         <div style="flex:1; min-width:180px;">
           <div class="ticket-card__titulo">${escapeHtml(t.titulo)}</div>
           <div class="ticket-card__meta">${formatFecha(t.fechaCreacion)} · ${asignado}</div>
         </div>
+        ${t.categoriaNombre ? `<span class="badge badge--categoria">${escapeHtml(t.categoriaNombre)}</span>` : ''}
         <span class="badge badge--estado ${estadoClase}">${ESTADOS[t.estado] || t.estado}</span>
         <span class="badge badge--prioridad ${prioridadClase}">${PRIORIDADES[t.prioridad] || t.prioridad}</span>
+        <span class="badge ${slaClase}" title="Vence: ${formatFecha(t.slaVencimiento)}">${SLA_LABELS[t.slaEstado] || t.slaEstado}</span>
         <svg class="ticket-card__toggle" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </div>
       <div class="ticket-card__body">
         <p class="ticket-card__descripcion">${escapeHtml(t.descripcion)}</p>
 
+        ${
+          resuelto
+            ? `<div class="solucion-box">
+                 <strong>Solución</strong>
+                 <p>${escapeHtml(t.solucion)}</p>
+                 <span class="ticket-card__meta">Resuelto el ${formatFecha(t.fechaResuelto)}</span>
+               </div>`
+            : ''
+        }
+
+        <div class="adjuntos-section">
+          <strong class="adjuntos-section__title">Adjuntos</strong>
+          <ul class="adjuntos-list" data-role="adjuntos"><li class="panel-status">Cargando…</li></ul>
+          ${
+            resuelto
+              ? ''
+              : `<form class="adjunto-form" data-action="subir-adjunto">
+                   <input type="file" accept="${ADJUNTOS_ACEPTADOS}" required />
+                   <button type="submit" class="btn btn-secondary btn--sm">Subir</button>
+                 </form>`
+          }
+        </div>
+
         <div class="comment-thread" data-role="comments">
           <p class="panel-status">Cargando comentarios…</p>
         </div>
-        <form class="comment-form" data-action="comentar">
-          <textarea class="field__input" placeholder="Agregar información o responder…" required maxlength="4000"></textarea>
-          <button type="submit" class="btn btn-primary btn--sm" style="align-self:flex-end;">Comentar</button>
-        </form>
+        ${
+          resuelto
+            ? ''
+            : `<form class="comment-form" data-action="comentar">
+                 <textarea class="field__input" placeholder="Agregar información o responder…" required maxlength="4000"></textarea>
+                 <button type="submit" class="btn btn-primary btn--sm" style="align-self:flex-end;">Comentar</button>
+               </form>`
+        }
+
+        <div class="adjuntos-section">
+          <strong class="adjuntos-section__title">Historial</strong>
+          <div class="comment-thread" data-role="eventos">
+            <p class="panel-status">Cargando historial…</p>
+          </div>
+        </div>
       </div>
     </article>
   `;
@@ -143,6 +221,65 @@ async function cargarComentarios(ticketId, container) {
     .join('');
 }
 
+async function cargarAdjuntos(ticketId, container) {
+  const res = await apiFetch(`/api/tickets/${ticketId}/adjuntos`);
+  if (!res.ok) {
+    container.innerHTML = '<li class="panel-status">No se pudieron cargar los adjuntos.</li>';
+    return;
+  }
+  if (!res.data.length) {
+    container.innerHTML = '<li class="panel-status">Todavía no hay adjuntos.</li>';
+    return;
+  }
+  container.innerHTML = res.data
+    .map(
+      (a) => `
+      <li class="adjunto-item">
+        <a href="${a.urlDescarga}" target="_blank" rel="noopener">${escapeHtml(a.nombreOriginal)}</a>
+        <span class="adjunto-item__meta">${escapeHtml(a.autorNombre)} · ${formatFecha(a.fechaCreacion)}</span>
+      </li>
+    `
+    )
+    .join('');
+}
+
+/** Texto de detalle de un evento -- mismo criterio que panel-admin.js (ESCALADO arma su texto, ESTADO/PRIORIDAD traducen el código crudo). */
+function detalleEventoTexto(e) {
+  if (e.tipo === 'ESCALADO') {
+    const motivo = e.motivo ? ` — Motivo: ${escapeHtml(e.motivo)}` : '';
+    return `Nivel ${e.nivelAnterior} → Nivel ${e.nivelNuevo}${motivo}`;
+  }
+  if (e.tipo === 'ESTADO') {
+    return `Nuevo estado: ${ESTADOS[e.detalle] || e.detalle}`;
+  }
+  if (e.tipo === 'PRIORIDAD') {
+    return `Nueva prioridad: ${PRIORIDADES[e.detalle] || e.detalle}`;
+  }
+  return escapeHtml(e.detalle || '');
+}
+
+async function cargarEventos(ticketId, container) {
+  const res = await apiFetch(`/api/tickets/${ticketId}/eventos`);
+  if (!res.ok) {
+    container.innerHTML = '<p class="panel-status">No se pudo cargar el historial.</p>';
+    return;
+  }
+  if (!res.data.length) {
+    container.innerHTML = '<p class="panel-status">Sin eventos todavía.</p>';
+    return;
+  }
+  container.innerHTML = res.data
+    .map(
+      (e) => `
+      <div class="comment-item">
+        <div class="comment-item__meta"><span>${EVENTO_LABELS[e.tipo] || e.tipo} · ${escapeHtml(e.autorNombre)}</span><span>${formatFecha(e.fecha)}</span></div>
+        <div class="comment-item__texto">${detalleEventoTexto(e)}</div>
+      </div>
+    `
+    )
+    .join('');
+}
+
 function initTicketsSection() {
   qs('#tickets-prev').addEventListener('click', () => {
     if (ticketsPage > 1) {
@@ -164,25 +301,49 @@ function initTicketsSection() {
     const card = event.target.closest('.ticket-card');
     const wasOpen = card.classList.contains('is-open');
     card.classList.toggle('is-open', !wasOpen);
-    if (!wasOpen && !card.dataset.comentariosCargados) {
-      card.dataset.comentariosCargados = '1';
-      await cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card));
+    if (!wasOpen && !card.dataset.detalleCargado) {
+      card.dataset.detalleCargado = '1';
+      await Promise.all([
+        cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card)),
+        cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card)),
+        cargarEventos(card.dataset.id, qs('[data-role="eventos"]', card)),
+      ]);
     }
   });
 
   listEl.addEventListener('submit', async (event) => {
-    if (!event.target.matches('[data-action="comentar"]')) return;
-    event.preventDefault();
     const card = event.target.closest('.ticket-card');
-    const textarea = qs('textarea', event.target);
-    const comentario = textarea.value.trim();
-    if (!comentario) return;
+    if (!card) return;
 
-    const res = await apiFetch(`/api/tickets/${card.dataset.id}/comentarios`, { method: 'POST', body: { comentario } });
-    if (!res.ok) return;
+    if (event.target.matches('[data-action="comentar"]')) {
+      event.preventDefault();
+      const textarea = qs('textarea', event.target);
+      const comentario = textarea.value.trim();
+      if (!comentario) return;
 
-    textarea.value = '';
-    await cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card));
+      const res = await apiFetch(`/api/tickets/${card.dataset.id}/comentarios`, { method: 'POST', body: { comentario } });
+      if (!res.ok) return;
+
+      textarea.value = '';
+      await cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card));
+      return;
+    }
+
+    if (event.target.matches('[data-action="subir-adjunto"]')) {
+      event.preventDefault();
+      const input = qs('input[type="file"]', event.target);
+      const archivo = input.files[0];
+      if (!archivo) return;
+
+      const formData = new FormData();
+      formData.append('archivo', archivo);
+
+      const res = await apiUpload(`/api/tickets/${card.dataset.id}/adjuntos`, formData);
+      if (!res.ok) return;
+
+      input.value = '';
+      await cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card));
+    }
   });
 
   cargarTickets();
@@ -191,6 +352,18 @@ function initTicketsSection() {
 /* ====================================
    INIT
 ==================================== */
+
+/** Sidebar simple: solo dos secciones, sin filtros que aplicar (a diferencia del panel admin). */
+function initSidebarNav() {
+  qs('#panel-sidebar').addEventListener('click', (event) => {
+    const link = event.target.closest('.panel-sidebar__link');
+    if (!link) return;
+    event.preventDefault();
+
+    showSection(link.dataset.section);
+    setActiveSidebarLink(link);
+  });
+}
 
 function initHeader(usuario) {
   qs('#panel-user-name').textContent = usuario.nombre;
@@ -202,7 +375,12 @@ function initHeader(usuario) {
 
 const usuarioActual = await requireAuth(['CLIENTE']);
 if (usuarioActual) {
+  initPanelShell();
   initHeader(usuarioActual);
+  initSidebarNav();
+  initInactivityLogout(INACTIVIDAD_TIMEOUT_MS);
+  showSection('inicio');
   initCrearTicket();
+  cargarCategoriasSelect();
   initTicketsSection();
 }

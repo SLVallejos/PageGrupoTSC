@@ -48,6 +48,16 @@ final class Request
         return $_GET[$key] ?? $default;
     }
 
+    /**
+     * Lee un archivo subido (`$_FILES`) — las requests `multipart/form-data`
+     * no pasan por `parseBody()` (esa lee `php://input` como JSON).
+     * @return array{name:string, type:string, tmp_name:string, error:int, size:int}|null
+     */
+    public function file(string $key): ?array
+    {
+        return $_FILES[$key] ?? null;
+    }
+
     /** @return array<string, mixed> */
     public function all(): array
     {

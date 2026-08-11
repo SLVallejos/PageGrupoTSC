@@ -33,6 +33,25 @@ export async function apiFetch(path, { method = 'GET', body, redirectOn401 = tru
 }
 
 /**
+ * Sube un archivo (`multipart/form-data`, no JSON) con la cookie de sesión
+ * incluida. No se fuerza `Content-Type`: el navegador arma el boundary
+ * solo cuando el body es un `FormData`.
+ * @param {string} path
+ * @param {FormData} formData
+ */
+export async function apiUpload(path, formData) {
+  const res = await fetch(path, { method: 'POST', credentials: 'same-origin', body: formData });
+
+  if (res.status === 401) {
+    window.location.href = 'login.html';
+    throw new Error('Sesión vencida o inválida.');
+  }
+
+  const json = await res.json().catch(() => ({}));
+  return { status: res.status, ok: res.ok, ...json };
+}
+
+/**
  * Consulta la sesión activa contra el backend (no hay nada guardado en el
  * cliente para chequear localmente).
  * @returns {Promise<{id:number, nombre:string, email:string, rol:string}|null>}
@@ -70,4 +89,30 @@ export async function requireAuth(rolesPermitidos) {
 /** Cierra la sesión actual en el backend. */
 export async function logout() {
   await apiFetch('/api/auth/logout', { method: 'POST' });
+}
+
+/**
+ * Cierra la sesión sola tras `ms` sin actividad (sin click, tecla,
+ * movimiento de mouse, scroll ni touch). Pensado para el panel de
+ * clientes -- el panel de administración no lo llama a propósito: no
+ * conviene cortarle el trabajo a un agente que está leyendo/escribiendo un
+ * ticket largo sin tocar nada por un rato.
+ * @param {number} ms
+ */
+export function initInactivityLogout(ms) {
+  let temporizador;
+
+  function reiniciar() {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(async () => {
+      await logout();
+      window.location.href = 'login.html?motivo=inactividad';
+    }, ms);
+  }
+
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach((evento) => {
+    window.addEventListener(evento, reiniciar, { passive: true });
+  });
+
+  reiniciar();
 }

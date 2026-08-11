@@ -30,21 +30,45 @@
   <!-- ===== Inicio Header de Panel ===== -->
   <header class="site-header site-header--scrolled">
     <nav class="navbar" aria-label="Navegación del panel">
+      <button type="button" id="panel-menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="panel-sidebar">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
       <a href="index.html#inicio" class="brand" aria-label="Grupo TSC - ir al inicio">
-        <img src="assets/img/tsc_logo.webp" alt="Grupo TSC" width="320" height="213" class="brand__logo" decoding="async" />
+        <img src="assets/icons/icon-192.png" alt="Grupo TSC" width="192" height="192" class="brand__logo" decoding="async" />
         <span class="brand__name">Grupo TSC</span>
+        <span class="brand__badge">Service Desk</span>
       </a>
       <div class="panel-header__user">
-        <span>Hola, <strong id="panel-user-name">—</strong></span>
-        <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+        <button type="button" id="panel-user-trigger" class="panel-topbar__user-trigger" aria-haspopup="true" aria-expanded="false">
+          Hola, <strong id="panel-user-name">—</strong>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <div id="panel-user-menu" class="panel-topbar__user-menu" hidden>
+          <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+        </div>
       </div>
     </nav>
   </header>
   <!-- ===== Fin Header de Panel ===== -->
 
+  <div class="panel-shell">
+    <aside id="panel-sidebar" class="panel-sidebar" aria-label="Navegación principal">
+      <div class="panel-sidebar__group">
+        <span class="panel-sidebar__group-label">Portal de clientes</span>
+        <a href="#" class="panel-sidebar__link is-active" data-section="inicio">Inicio</a>
+        <a href="#" class="panel-sidebar__link" data-section="tickets">Mis tickets</a>
+      </div>
+    </aside>
+    <div id="panel-sidebar-backdrop" class="panel-sidebar-backdrop"></div>
+
+    <div class="panel-content">
   <main id="panel-main" class="panel-main container container--lg">
     <!-- ===== Inicio Sección Crear Ticket ===== -->
-    <section aria-label="Crear ticket de soporte">
+    <section class="panel-section" data-section="inicio" aria-label="Crear ticket de soporte">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Portal de clientes</span>
         <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Crear Ticket</h1>
@@ -53,7 +77,7 @@
 
       <div id="crear-alert" class="panel-alert" role="alert"></div>
 
-      <form id="crear-ticket-form" class="glass-card panel-form" novalidate style="grid-template-columns: 2fr 1fr auto;">
+      <form id="crear-ticket-form" class="glass-card panel-form" novalidate style="grid-template-columns: 1fr 1fr auto;">
         <div class="field" style="grid-column: 1 / -1;">
           <label for="ticket-titulo" class="field__label field__label--form">Título</label>
           <input id="ticket-titulo" name="titulo" class="field__input" required maxlength="200" placeholder="Ej: No tengo conexión en depósito" />
@@ -61,6 +85,12 @@
         <div class="field" style="grid-column: 1 / -1;">
           <label for="ticket-descripcion" class="field__label field__label--form">Descripción</label>
           <textarea id="ticket-descripcion" name="descripcion" class="field__input" required style="min-height:90px;" placeholder="Contanos el detalle: qué pasa, desde cuándo, a quién afecta…"></textarea>
+        </div>
+        <div class="field">
+          <label for="ticket-categoria" class="field__label field__label--form">Categoría</label>
+          <select id="ticket-categoria" name="categoriaId" class="field__input">
+            <option value="">Sin categoría</option>
+          </select>
         </div>
         <div class="field">
           <label for="ticket-prioridad" class="field__label field__label--form">Prioridad</label>
@@ -77,7 +107,7 @@
     <!-- ===== Fin Sección Crear Ticket ===== -->
 
     <!-- ===== Inicio Sección Mis Tickets ===== -->
-    <section aria-label="Mis tickets">
+    <section class="panel-section is-hidden" data-section="tickets" aria-label="Mis tickets">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Seguimiento</span>
         <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mis Tickets</h2>
@@ -94,6 +124,8 @@
     </section>
     <!-- ===== Fin Sección Mis Tickets ===== -->
   </main>
+    </div>
+  </div>
 
   <script type="module" src="assets/js/pages/panel-cliente.js"></script>
 </body>

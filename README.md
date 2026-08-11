@@ -32,12 +32,11 @@ app/                      # backend PHP (namespace App\, PSR-4)
   Core/                     # Router.php, Request.php, Response.php
   Controllers/               # BaseController.php, HealthController.php, AuthController.php
   Models/                      # BaseModel.php, ClienteUsuarioModel.php
-  Services/                     # FreeScoutService.php (lectura real de freescout.users)
   Middleware/                     # AuthMiddleware.php (guarda de sesión)
   Helpers/                          # Validator.php
 
 database/
-  migrations/                # 001_usuarios_clientes.sql (clientes propios, separados de FreeScout)
+  migrations/                # 001_usuarios_clientes.sql (clientes propios)
   seeds/                       # vacío por ahora
 
 storage/, logs/, cache/     # runtime del backend (ignorados por git salvo .gitkeep)
@@ -56,34 +55,44 @@ datos *y* a mano en el HTML correspondiente.
 
 Todo corre con el PHP embebido de Laragon (sirve el frontend estático **y**
 la API en el mismo origen, sin CORS) — comando exacto en
-`.claude/launch.json` y detalle completo (MySQL, FreeScout) en
+`.claude/launch.json` y detalle completo (MySQL) en
 [docs/LOCAL_DEV_SETUP.md](docs/LOCAL_DEV_SETUP.md):
 
 ```bash
 composer install
-cp .env.example .env    # completar credenciales de MySQL (grupotsc + freescout)
+cp .env.example .env    # completar credenciales de MySQL (grupotsc)
 php -S localhost:4321 -t public public/index.php
 ```
 
 ## Estado del backend
 
-- Login real implementado: administradores autentican contra los usuarios
-  reales de **FreeScout** (`freescout.users`, lectura de solo lectura);
-  clientes autentican contra una tabla propia (`usuarios_clientes` en
-  `grupotsc`), separada de FreeScout porque su versión gratuita no permite
-  loguear clientes. Detalle completo en
-  [docs/freescout-integration-strategy.md](docs/freescout-integration-strategy.md).
+- Login real implementado contra dos tablas propias en `grupotsc`:
+  administradores/agentes de soporte (`usuarios_administradores`) y
+  clientes (`usuarios_clientes`).
 - Sesión con cookie httpOnly nativa de PHP (`GET/POST /api/auth/*`) — no hay
   JWT ni token guardado en el cliente.
-- **Módulo de tickets implementado**: clientes crean/ven/comentan sus
-  propios tickets, admins ven todos, toman/liberan, cambian estado/prioridad
-  y comentan (`app/Controllers/TicketController.php`,
-  `database/migrations/002_tickets.sql`). Un cliente no puede ver/comentar
-  tickets ajenos (403).
-- **Gestión de clientes implementada**: alta, listado, activar/desactivar y
-  resetear contraseña desde el panel admin (`app/Controllers/UsuarioController.php`).
-  Los ADMIN son usuarios reales de FreeScout y se siguen gestionando desde
-  su propia UI (`localhost:8001`), no desde acá.
+- **Módulo de tickets implementado**: ciclo de vida `NEW` → `EN_PROCESO` →
+  `RESUELTO` (bloqueado, sin vuelta atrás), niveles de escalado 1/2/3 con
+  pestañas y badge de tickets nuevos por nivel, adjuntos (imágenes/PDF,
+  MIME validado con `finfo`, guardados fuera de `public/`), comentarios, y
+  "Proponer Solución" que resuelve y bloquea el ticket por completo (ni
+  comentarios ni adjuntos nuevos de nadie) —
+  `app/Controllers/TicketController.php`,
+  `database/migrations/002_tickets.sql`,
+  `database/migrations/003_tickets_niveles_resolucion.sql`,
+  `database/migrations/004_ticket_adjuntos.sql`. Un cliente no puede ver/
+  comentar/adjuntar en tickets ajenos (403).
+- Reseteo de contraseña de clientes con dos opciones: generar una aleatoria
+  o asignar una manual.
+- Panel admin/cliente con diseño claro (dashboard blanco, sombras suaves),
+  scoped solo a esas dos páginas — el sitio público mantiene su tema oscuro
+  de marca sin cambios.
+- **Gestión de clientes y agentes de soporte implementada**: alta, listado,
+  activar/desactivar y resetear contraseña desde el panel admin, para
+  clientes (`usuarios_clientes`) y para agentes de soporte
+  (`usuarios_administradores`, `app/Controllers/AdministradorController.php`,
+  con nombre/apellido/título/nivel/foto de perfil) — se crean y viven
+  enteramente en nuestra base, sin dependencias externas.
 - Checklist de seguridad, con lo ya cubierto por el login y lo pendiente
   para cuando se agreguen esos endpoints:
   [docs/SECURITY_NOTES.md](docs/SECURITY_NOTES.md).

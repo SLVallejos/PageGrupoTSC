@@ -11,8 +11,8 @@ use RuntimeException;
 /**
  * Fábrica de conexiones PDO a MySQL, cacheadas por nombre — una conexión
  * reutilizable por request y por base. `'app'` (la de Grupo TSC) lee
- * `DB_*`; cualquier otro nombre lee `<NOMBRE>_DB_*` (ej. `'freescout'` lee
- * `FREESCOUT_DB_*`), para conectar de forma aislada a la base de FreeScout.
+ * `DB_*`; cualquier otro nombre leería `<NOMBRE>_DB_*`, para conectar de
+ * forma aislada a otra base si hiciera falta.
  */
 final class Database
 {

@@ -30,21 +30,113 @@
   <!-- ===== Inicio Header de Panel ===== -->
   <header class="site-header site-header--scrolled">
     <nav class="navbar" aria-label="Navegación del panel">
+      <button type="button" id="panel-menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="panel-sidebar">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
       <a href="index.html#inicio" class="brand" aria-label="Grupo TSC - ir al inicio">
-        <img src="assets/img/tsc_logo.webp" alt="Grupo TSC" width="320" height="213" class="brand__logo" decoding="async" />
+        <img src="assets/icons/icon-192.png" alt="Grupo TSC" width="192" height="192" class="brand__logo" decoding="async" />
         <span class="brand__name">Grupo TSC</span>
+        <span class="brand__badge">Service Desk</span>
       </a>
+      <div class="panel-topbar__search">
+        <input type="search" id="panel-search-input" class="panel-topbar__search-input" placeholder="Buscar tickets por título o #ID…" aria-label="Buscar tickets" />
+      </div>
       <div class="panel-header__user">
-        <span>Hola, <strong id="panel-user-name">—</strong></span>
-        <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+        <button type="button" id="panel-notif-btn" class="panel-topbar__notif" aria-label="Notificaciones (tickets nuevos)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span id="panel-notif-badge" class="panel-topbar__notif-badge" hidden>0</span>
+        </button>
+        <button type="button" id="panel-user-trigger" class="panel-topbar__user-trigger" aria-haspopup="true" aria-expanded="false">
+          Hola, <strong id="panel-user-name">—</strong>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <div id="panel-user-menu" class="panel-topbar__user-menu" hidden>
+          <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
+        </div>
       </div>
     </nav>
   </header>
   <!-- ===== Fin Header de Panel ===== -->
 
+  <div class="panel-shell">
+    <aside id="panel-sidebar" class="panel-sidebar" aria-label="Navegación principal">
+      <div class="panel-sidebar__group">
+        <a href="#" class="panel-sidebar__link is-active" data-section="inicio">Inicio</a>
+      </div>
+      <div class="panel-sidebar__group">
+        <span class="panel-sidebar__group-label">Estadísticas</span>
+        <a href="#" class="panel-sidebar__link" data-section="estadisticas">Gráficos</a>
+      </div>
+      <div class="panel-sidebar__group">
+        <span class="panel-sidebar__group-label">Tickets</span>
+        <a href="#" class="panel-sidebar__link" data-section="tickets">Todos</a>
+        <a href="#" class="panel-sidebar__link" data-section="tickets" data-solo-mios="1">Mis tickets</a>
+        <a href="#" class="panel-sidebar__link" data-section="tickets" data-sin-asignar="1">Sin asignar</a>
+      </div>
+      <div class="panel-sidebar__group">
+        <span class="panel-sidebar__group-label">Soporte</span>
+        <a href="#" class="panel-sidebar__link" data-section="tickets" data-nivel="1">Nivel 1 <span class="panel-sidebar__badge" id="badge-nivel-1" hidden>0</span></a>
+        <a href="#" class="panel-sidebar__link" data-section="tickets" data-nivel="2">Nivel 2 <span class="panel-sidebar__badge" id="badge-nivel-2" hidden>0</span></a>
+        <a href="#" class="panel-sidebar__link" data-section="tickets" data-nivel="3">Nivel 3 <span class="panel-sidebar__badge" id="badge-nivel-3" hidden>0</span></a>
+      </div>
+      <div class="panel-sidebar__group">
+        <span class="panel-sidebar__group-label">Administración</span>
+        <a href="#" class="panel-sidebar__link" data-section="usuarios">Usuarios</a>
+        <a href="#" class="panel-sidebar__link" data-section="administradores">Agentes de Soporte</a>
+        <a href="#" class="panel-sidebar__link" data-section="categorias">Categorías</a>
+      </div>
+    </aside>
+    <div id="panel-sidebar-backdrop" class="panel-sidebar-backdrop"></div>
+
+    <div class="panel-content">
   <main id="panel-main" class="panel-main container">
+    <!-- ===== Inicio Sección Inicio (dashboard) ===== -->
+    <section class="panel-section" data-section="inicio" aria-label="Inicio">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Panel de administración</span>
+        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Dashboard de Service Desk</h1>
+        <p class="section-heading__subtitle" style="margin-left:0;">Resumen operativo y actividad de soporte</p>
+      </div>
+
+      <div id="dashboard-alert" class="panel-alert" role="alert"></div>
+
+      <div id="dashboard-stats" class="dashboard-stats"></div>
+
+      <div class="dashboard-block">
+        <h2 class="dashboard-block__title">Atención requerida</h2>
+        <div id="atencion-requerida"></div>
+      </div>
+
+      <div class="dashboard-block">
+        <h2 class="dashboard-block__title">Actividad reciente</h2>
+        <div id="actividad-reciente"></div>
+      </div>
+    </section>
+    <!-- ===== Fin Sección Inicio ===== -->
+
+    <!-- ===== Inicio Sección Estadísticas ===== -->
+    <section class="panel-section is-hidden" data-section="estadisticas" aria-label="Estadísticas">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Panel de administración</span>
+        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Estadísticas</h1>
+        <p class="section-heading__subtitle" style="margin-left:0;">Distribución y tendencia de tickets</p>
+      </div>
+
+      <div id="estadisticas-alert" class="panel-alert" role="alert"></div>
+
+      <div id="dashboard-charts" class="dashboard-charts"></div>
+    </section>
+    <!-- ===== Fin Sección Estadísticas ===== -->
+
     <!-- ===== Inicio Sección Tickets ===== -->
-    <section aria-label="Tickets de soporte">
+    <section class="panel-section is-hidden" data-section="tickets" aria-label="Tickets de soporte">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Panel de administración</span>
         <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Tickets de Soporte</h1>
@@ -57,10 +149,9 @@
           <label for="filter-estado" class="field__label field__label--form">Estado</label>
           <select id="filter-estado" class="field__input">
             <option value="">Todos</option>
-            <option value="ABIERTO">Abierto</option>
-            <option value="EN_CURSO">En curso</option>
+            <option value="NEW">Nuevo</option>
+            <option value="EN_PROCESO">En proceso</option>
             <option value="RESUELTO">Resuelto</option>
-            <option value="CERRADO">Cerrado</option>
           </select>
         </div>
         <div class="field">
@@ -71,6 +162,12 @@
             <option value="MEDIA">Media</option>
             <option value="ALTA">Alta</option>
             <option value="URGENTE">Urgente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-categoria" class="field__label field__label--form">Categoría</label>
+          <select id="filter-categoria" class="field__input">
+            <option value="">Todas</option>
           </select>
         </div>
         <label class="panel-filters__checkbox">
@@ -91,7 +188,7 @@
     <!-- ===== Fin Sección Tickets ===== -->
 
     <!-- ===== Inicio Sección Usuarios ===== -->
-    <section aria-label="Administración de usuarios">
+    <section class="panel-section is-hidden" data-section="usuarios" aria-label="Administración de usuarios">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Administración</span>
         <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Usuarios</h2>
@@ -119,7 +216,85 @@
       <p id="usuarios-status" class="panel-status">Cargando usuarios…</p>
     </section>
     <!-- ===== Fin Sección Usuarios ===== -->
+
+    <!-- ===== Inicio Sección Agentes de Soporte ===== -->
+    <section class="panel-section is-hidden" data-section="administradores" aria-label="Agentes de soporte">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Administración</span>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Agentes de Soporte</h2>
+        <p class="section-heading__subtitle" style="margin-left:0;">
+          Cuentas que atienden tickets por nivel (1, 2 o 3) -- cada agente
+          se loguea con su propio email y gestiona los tickets que toma.
+        </p>
+      </div>
+
+      <div id="administradores-alert" class="panel-alert" role="alert"></div>
+
+      <form id="crear-administrador-form" class="glass-card panel-form" novalidate>
+        <div class="field">
+          <label for="nuevo-admin-nombre" class="field__label field__label--form">Nombre</label>
+          <input id="nuevo-admin-nombre" name="nombre" class="field__input" required maxlength="150" placeholder="Nombre" />
+        </div>
+        <div class="field">
+          <label for="nuevo-admin-apellido" class="field__label field__label--form">Apellido</label>
+          <input id="nuevo-admin-apellido" name="apellido" class="field__input" required maxlength="150" placeholder="Apellido" />
+        </div>
+        <div class="field">
+          <label for="nuevo-admin-titulo" class="field__label field__label--form">Título</label>
+          <input id="nuevo-admin-titulo" name="titulo" class="field__input" required maxlength="150" placeholder="Ej: Técnico de Redes" />
+        </div>
+        <div class="field">
+          <label for="nuevo-admin-nivel" class="field__label field__label--form">Nivel</label>
+          <select id="nuevo-admin-nivel" name="nivel" class="field__input" required>
+            <option value="1">Nivel 1</option>
+            <option value="2">Nivel 2</option>
+            <option value="3">Nivel 3</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="nuevo-admin-email" class="field__label field__label--form">Email</label>
+          <input id="nuevo-admin-email" name="email" type="email" class="field__input" required maxlength="254" placeholder="nombre@empresa.com" />
+        </div>
+        <div class="field">
+          <label for="nuevo-admin-password" class="field__label field__label--form">Contraseña</label>
+          <input id="nuevo-admin-password" name="password" type="password" class="field__input" required minlength="6" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <button type="submit" class="btn btn-primary">Crear agente</button>
+      </form>
+
+      <div id="administradores-list" class="usuarios-list"></div>
+      <p id="administradores-status" class="panel-status">Cargando agentes…</p>
+    </section>
+    <!-- ===== Fin Sección Agentes de Soporte ===== -->
+
+    <!-- ===== Inicio Sección Categorías ===== -->
+    <section class="panel-section is-hidden" data-section="categorias" aria-label="Categorías de tickets">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Administración</span>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Categorías</h2>
+        <p class="section-heading__subtitle" style="margin-left:0;">
+          No se eliminan categorías en uso -- solo se desactivan, así los
+          tickets que ya las tienen no quedan huérfanos.
+        </p>
+      </div>
+
+      <div id="categorias-alert" class="panel-alert" role="alert"></div>
+
+      <form id="crear-categoria-form" class="glass-card panel-form" novalidate>
+        <div class="field">
+          <label for="nueva-categoria-nombre" class="field__label field__label--form">Nombre</label>
+          <input id="nueva-categoria-nombre" name="nombre" class="field__input" required maxlength="100" placeholder="Ej: Hardware" />
+        </div>
+        <button type="submit" class="btn btn-primary">Crear categoría</button>
+      </form>
+
+      <div id="categorias-list" class="usuarios-list"></div>
+      <p id="categorias-status" class="panel-status">Cargando categorías…</p>
+    </section>
+    <!-- ===== Fin Sección Categorías ===== -->
   </main>
+    </div>
+  </div>
 
   <script type="module" src="assets/js/pages/panel-admin.js"></script>
 </body>

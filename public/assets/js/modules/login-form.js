@@ -38,6 +38,13 @@ export async function initLoginForm() {
     return;
   }
 
+  // `initInactivityLogout()` (api-client.js) y el link "ir al inicio" del
+  // panel admin redirigen acá con este query param para explicar por qué
+  // se cerró la sesión, en vez de dejar un login en blanco sin contexto.
+  if (new URLSearchParams(window.location.search).get('motivo') === 'inactividad') {
+    showNotice('Tu sesión se cerró por inactividad. Iniciá sesión de nuevo.');
+  }
+
   const fields = Object.keys(validators)
     .map((name) => form.elements.namedItem(name))
     .filter(Boolean);
