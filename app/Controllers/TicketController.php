@@ -122,7 +122,7 @@ final class TicketController extends BaseController
 
     public function asignar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -142,7 +142,7 @@ final class TicketController extends BaseController
 
     public function liberar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -159,7 +159,7 @@ final class TicketController extends BaseController
 
     public function pausar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -176,7 +176,7 @@ final class TicketController extends BaseController
 
     public function reanudar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -194,7 +194,7 @@ final class TicketController extends BaseController
     /** Única transición válida desde RESUELTO -- por eso no pasa por `assertEditable()`, que justamente bloquea ese estado. */
     public function cerrar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -216,7 +216,7 @@ final class TicketController extends BaseController
      */
     public function cancelar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth();
+        $usuario = $this->requireAuth(['CLIENTE', 'AGENTE']);
         $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
         $this->assertEditable($ticket);
 
@@ -277,7 +277,7 @@ final class TicketController extends BaseController
 
     public function prioridad(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -297,7 +297,7 @@ final class TicketController extends BaseController
 
     public function escalar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -335,7 +335,7 @@ final class TicketController extends BaseController
 
     public function resolver(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $usuario = $this->requireAuth(['AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
         $this->assertNivelPermitido($usuario, $ticket);
@@ -557,7 +557,7 @@ final class TicketController extends BaseController
 
     public function comentar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth();
+        $usuario = $this->requireAuth(['CLIENTE', 'AGENTE']);
         $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
         $this->assertEditable($ticket);
 
@@ -624,7 +624,7 @@ final class TicketController extends BaseController
 
     public function subirAdjunto(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth();
+        $usuario = $this->requireAuth(['CLIENTE', 'AGENTE']);
         $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
         $this->assertEditable($ticket);
 

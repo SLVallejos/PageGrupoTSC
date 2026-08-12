@@ -32,7 +32,7 @@ const EVENTO_LABELS = {
   RESUELTO: 'Ticket resuelto',
   PAUSADO: 'Puesto en espera',
   REANUDADO: 'Reanudado',
-  DEVUELTO: 'Devuelto al agente original',
+  DEVUELTO: 'Devuelto al técnico original',
   CERRADO: 'Ticket cerrado',
   CANCELADO: 'Ticket cancelado',
 };
@@ -124,7 +124,46 @@ function avatarHtml(fotoUrl, nombre, tamano = 'sm') {
  * de estado en asignar/liberar/pausar/reanudar/escalar/resolver/
  * cerrar).
  */
+/**
+ * Vista de solo lectura para ADMIN -- el administrador supervisa el
+ * circuito completo pero nunca gestiona un ticket como si fuera técnico
+ * (ver `TicketController`, donde asignar/liberar/pausar/reanudar/
+ * escalar/resolver/cerrar/prioridad ahora son AGENTE-only). Nunca hay
+ * botones de acción, cualquiera sea el estado.
+ */
+function ticketEstadoSupervisorHtml(t) {
+  if (t.estado === 'CANCELADO') {
+    return `
+      <div class="solucion-box">
+        <strong>Ticket cancelado</strong>
+        <p>El motivo queda registrado en el Historial, más abajo.</p>
+      </div>
+    `;
+  }
+
+  if (t.estado === 'CERRADO' || t.estado === 'RESUELTO') {
+    return `
+      <div class="solucion-box">
+        <strong>Solución propuesta</strong>
+        <p>${escapeHtml(t.solucion)}</p>
+        <span class="ticket-card__meta">Resuelto el ${formatFecha(t.fechaResuelto)}${t.estado === 'CERRADO' ? ` · Cerrado el ${formatFecha(t.fechaCerrado)}` : ''}</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="solucion-box">
+      <strong>Vista de supervisión</strong>
+      <p>Estado actual: ${ESTADOS[t.estado] || t.estado}. El administrador supervisa el circuito sin gestionar tickets directamente -- ver Historial para el detalle de la gestión.</p>
+    </div>
+  `;
+}
+
 function ticketControlesHtml(t) {
+  if (usuarioActual.rol === 'ADMIN') {
+    return ticketEstadoSupervisorHtml(t);
+  }
+
   if (t.estado === 'CANCELADO') {
     return `
       <div class="solucion-box">
@@ -220,8 +259,11 @@ function ticketCardHtml(t) {
   // RESUELTO, CERRADO y CANCELADO bloquean comentarios/adjuntos por
   // igual (ver TicketController::assertEditable()) -- el nombre queda
   // "resuelto" por el estilo CSS ya existente (`ticket-card--resuelto`),
-  // que también aplica visualmente a cerrado/cancelado.
-  const resuelto = t.estado === 'RESUELTO' || t.estado === 'CERRADO' || t.estado === 'CANCELADO';
+  // que también aplica visualmente a cerrado/cancelado. Un ADMIN nunca
+  // comenta ni adjunta (supervisor de solo lectura, ver
+  // ticketEstadoSupervisorHtml()), así que cae en la misma rama sea
+  // cual sea el estado real del ticket.
+  const resuelto = t.estado === 'RESUELTO' || t.estado === 'CERRADO' || t.estado === 'CANCELADO' || usuarioActual.rol === 'ADMIN';
 
   return `
     <article class="glass-card ticket-card${resuelto ? ' ticket-card--resuelto' : ''}" data-id="${t.id}" data-nivel="${t.nivel}">
@@ -576,7 +618,7 @@ function atencionRequeridaHtml(t) {
       </div>
       <div class="usuario-row__actions">
         <button type="button" class="btn btn-secondary btn--sm" data-action="ver-ticket" data-id="${t.id}">Ver ticket</button>
-        ${t.asignadoAId === null ? `<button type="button" class="btn btn-secondary btn--sm" data-action="asignar-directo" data-id="${t.id}">Asignar</button>` : ''}
+        ${t.asignadoAId === null && usuarioActual.rol !== 'ADMIN' ? `<button type="button" class="btn btn-secondary btn--sm" data-action="asignar-directo" data-id="${t.id}">Asignar</button>` : ''}
       </div>
     </div>
   `;
@@ -726,24 +768,33 @@ async function cargarDashboard() {
   }
 
   const d = res.data;
-  statsEl.innerHTML = [
+  // El admin es supervisor de solo lectura -- no tiene bandeja propia,
+  // así que "Mis tickets" (siempre 0 para ese rol) no suma nada y se
+  // omite en vez de mostrar un tile vacío.
+  const esAdmin = usuarioActual.rol === 'ADMIN';
+  const tiles = [
     dashboardStatHtml('abiertos', d.abiertos, 'Tickets abiertos', false),
     dashboardStatHtml('enProgreso', d.enProgreso, 'En progreso', true),
     dashboardStatHtml('escalados', d.escalados, 'Escalados', false),
     dashboardStatHtml('criticos', d.criticos, 'Críticos', false),
     dashboardStatHtml('resueltosHoy', d.resueltosHoy, 'Resueltos hoy', false),
-    dashboardStatHtml('misTickets', d.misTickets, 'Mis tickets', true),
-    dashboardStatHtml('slaEnRiesgo', d.slaEnRiesgo, 'SLA en riesgo', false),
-    dashboardStatHtml('cancelados', d.cancelados, 'Cancelados', false),
-  ].join('');
+  ];
+  if (!esAdmin) {
+    tiles.push(dashboardStatHtml('misTickets', d.misTickets, 'Mis tickets', true));
+  }
+  tiles.push(dashboardStatHtml('slaEnRiesgo', d.slaEnRiesgo, 'SLA en riesgo', false));
+  tiles.push(dashboardStatHtml('cancelados', d.cancelados, 'Cancelados', false));
+  statsEl.innerHTML = tiles.join('');
 
   qs('[data-stat="enProgreso"]').addEventListener('click', () => {
     irATickets({ link: linkTodos(), estado: 'EN_PROCESO' });
   });
 
-  qs('[data-stat="misTickets"]').addEventListener('click', () => {
-    irATickets({ link: qs('.panel-sidebar__link[data-solo-mios="1"]'), soloMios: true });
-  });
+  if (!esAdmin) {
+    qs('[data-stat="misTickets"]').addEventListener('click', () => {
+      irATickets({ link: qs('.panel-sidebar__link[data-solo-mios="1"]'), soloMios: true });
+    });
+  }
 
   const atencionEl = qs('#atencion-requerida');
   atencionEl.innerHTML = d.atencionRequerida.length
@@ -1243,10 +1294,33 @@ function usuarioRowHtml(u) {
 }
 
 /**
- * @param {{apiPath:string, formId:string, listId:string, statusId:string,
- *   alertId:string, entidadLabel:string, emptyLabel:string}} config
+ * Parte una lista de clientes/técnicos en dos bloques con encabezado --
+ * "{Entidad} activos" y "{Entidad} dados de baja" -- la baja es siempre
+ * lógica (columna `activo`, ver `UsuarioTablaModel::setActivo()`), así
+ * que el registro completo (y sus tickets históricos) sigue intacto,
+ * solo cambia en qué bloque aparece.
  */
-function initGestionSection({ apiPath, formId, listId, statusId, alertId, entidadLabel, emptyLabel }) {
+function gruposActivoBajaHtml(items, entidadPlural, rowFn) {
+  const activos = items.filter((i) => i.activo);
+  const bajas = items.filter((i) => !i.activo);
+  const entidadMinuscula = entidadPlural.toLowerCase();
+  const bloque = (titulo, lista, vacioTexto) => `
+    <div class="usuarios-grupo">
+      <h3 class="usuarios-grupo__titulo">${escapeHtml(titulo)}</h3>
+      ${lista.length ? lista.map(rowFn).join('') : `<p class="panel-status">${escapeHtml(vacioTexto)}</p>`}
+    </div>
+  `;
+  return (
+    bloque(`${entidadPlural} activos`, activos, `Sin ${entidadMinuscula} activos.`) +
+    bloque(`${entidadPlural} dados de baja`, bajas, `Sin ${entidadMinuscula} dados de baja.`)
+  );
+}
+
+/**
+ * @param {{apiPath:string, formId:string, listId:string, statusId:string,
+ *   alertId:string, entidadLabel:string, entidadPlural:string, emptyLabel:string}} config
+ */
+function initGestionSection({ apiPath, formId, listId, statusId, alertId, entidadLabel, entidadPlural, emptyLabel }) {
   async function cargar() {
     const statusEl = qs(`#${statusId}`);
     const listEl = qs(`#${listId}`);
@@ -1264,7 +1338,7 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
       return;
     }
     statusEl.style.display = 'none';
-    listEl.innerHTML = res.data.map(usuarioRowHtml).join('');
+    listEl.innerHTML = gruposActivoBajaHtml(res.data, entidadPlural, usuarioRowHtml);
   }
 
   initPasswordHints(qs(`#${formId}`));
@@ -1387,21 +1461,21 @@ function initAgentesSection() {
   async function cargar() {
     const statusEl = qs('#administradores-status');
     const listEl = qs('#administradores-list');
-    statusEl.textContent = 'Cargando agentes…';
+    statusEl.textContent = 'Cargando técnicos…';
     statusEl.style.display = 'block';
 
     const res = await apiFetch(`${apiPath}?page=1`);
     if (!res.ok) {
-      statusEl.textContent = 'No se pudieron cargar los agentes.';
+      statusEl.textContent = 'No se pudieron cargar los técnicos.';
       return;
     }
     if (!res.data.length) {
-      statusEl.textContent = 'Todavía no hay agentes.';
+      statusEl.textContent = 'Todavía no hay técnicos.';
       listEl.innerHTML = '';
       return;
     }
     statusEl.style.display = 'none';
-    listEl.innerHTML = res.data.map(agenteRowHtml).join('');
+    listEl.innerHTML = gruposActivoBajaHtml(res.data, 'Técnicos', agenteRowHtml);
   }
 
   initPasswordHints(qs('#crear-administrador-form'));
@@ -1419,7 +1493,7 @@ function initAgentesSection() {
     };
     const res = await apiFetch(apiPath, { method: 'POST', body });
     if (!res.ok) {
-      mostrarAlerta('administradores-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el agente.');
+      mostrarAlerta('administradores-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el técnico.');
       return;
     }
     mostrarAlerta('administradores-alert', `Se creó "${body.nombre} ${body.apellido}".`, 'success');
@@ -1435,14 +1509,14 @@ function initAgentesSection() {
 
     if (event.target.closest('[data-action="activar"]')) {
       const res = await apiFetch(`${apiPath}/${id}/estado`, { method: 'PATCH', body: { activo: true } });
-      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo activar el agente.');
+      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo activar el técnico.');
       cargar();
       return;
     }
 
     if (event.target.closest('[data-action="desactivar"]')) {
       const res = await apiFetch(`${apiPath}/${id}/estado`, { method: 'PATCH', body: { activo: false } });
-      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo desactivar el agente.');
+      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo desactivar el técnico.');
       cargar();
       return;
     }
@@ -1589,29 +1663,43 @@ function initCategoriasSection() {
 }
 
 /**
- * Un AGENTE no tiene acceso a Estadísticas/Usuarios/Agentes de Soporte/
+ * Un AGENTE no tiene acceso a Estadísticas/Clientes/Técnicos/
  * Categorías (ADMIN-only en el backend, ver `TicketController` y
  * `GestionUsuariosController`) ni a los tabs Nivel 1/2/3 (el backend ya
  * le fuerza su propio nivel en cualquier listado -- ver
  * `assertNivelPermitido()` -- así que navegarlos no tiene sentido). Se
  * oculta la navegación entera; la protección real está en el backend,
  * esto es solo para no mostrar una puerta que de todos modos da 403.
+ *
+ * Un ADMIN, al revés, es puramente supervisor -- no tiene bandeja
+ * propia de tickets (ver `ticketControlesHtml()`, que para ADMIN nunca
+ * ofrece adjudicarse/liberar), así que "Mis tickets" y "Sin asignar"
+ * no aplican y se ocultan solo para ese rol (queda "Todos" + los tabs
+ * de nivel, de solo lectura).
  */
 function aplicarVisibilidadPorRol() {
-  if (usuarioActual.rol !== 'AGENTE') return;
+  if (usuarioActual.rol === 'AGENTE') {
+    const ocultarGrupoDe = (selector) => {
+      const link = qs(selector);
+      const grupo = link && link.closest('.panel-sidebar__group');
+      if (grupo) grupo.hidden = true;
+    };
 
-  const ocultarGrupoDe = (selector) => {
-    const link = qs(selector);
-    const grupo = link && link.closest('.panel-sidebar__group');
-    if (grupo) grupo.hidden = true;
-  };
+    ocultarGrupoDe('.panel-sidebar__link[data-section="estadisticas"]');
+    ocultarGrupoDe('.panel-sidebar__link[data-section="usuarios"]');
+    ocultarGrupoDe('.panel-sidebar__link[data-nivel="1"]');
 
-  ocultarGrupoDe('.panel-sidebar__link[data-section="estadisticas"]');
-  ocultarGrupoDe('.panel-sidebar__link[data-section="usuarios"]');
-  ocultarGrupoDe('.panel-sidebar__link[data-nivel="1"]');
+    const todos = linkTodos();
+    if (todos) todos.textContent = 'Tickets de mi nivel';
+    return;
+  }
 
-  const todos = linkTodos();
-  if (todos) todos.textContent = 'Tickets de mi nivel';
+  if (usuarioActual.rol === 'ADMIN') {
+    const misTickets = qs('.panel-sidebar__link[data-solo-mios="1"]');
+    if (misTickets) misTickets.hidden = true;
+    const sinAsignar = qs('.panel-sidebar__link[data-sin-asignar="1"]');
+    if (sinAsignar) sinAsignar.hidden = true;
+  }
 }
 
 /* ====================================
@@ -1732,6 +1820,7 @@ if (usuarioActual) {
       statusId: 'usuarios-status',
       alertId: 'usuarios-alert',
       entidadLabel: 'cliente',
+      entidadPlural: 'Clientes',
       emptyLabel: 'Todavía no hay clientes.',
     });
     initAgentesSection();

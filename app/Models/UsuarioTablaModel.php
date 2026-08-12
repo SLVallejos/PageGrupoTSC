@@ -80,6 +80,22 @@ abstract class UsuarioTablaModel extends BaseModel
         $stmt->execute([$activo ? 1 : 0, $id]);
     }
 
+    /**
+     * Revalida contra la DB si la cuenta sigue activa -- a diferencia de
+     * `findByEmail()` (que ya filtra `activo = 1` pero solo corre en el
+     * login), esto lo usa `AuthMiddleware` en cada request para que dar
+     * de baja a alguien con una sesión ya abierta la corte de inmediato,
+     * no recién en el próximo login.
+     */
+    public function isActivo(int $id): bool
+    {
+        $stmt = $this->db->prepare("SELECT activo FROM {$this->tabla()} WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        $valor = $stmt->fetchColumn();
+
+        return $valor !== false && (bool) $valor;
+    }
+
     public function updatePassword(int $id, string $passwordHash): void
     {
         $stmt = $this->db->prepare("UPDATE {$this->tabla()} SET password_hash = ? WHERE id = ?");

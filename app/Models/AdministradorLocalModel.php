@@ -70,6 +70,29 @@ final class AdministradorLocalModel extends UsuarioTablaModel
         ];
     }
 
+    /**
+     * Override de `listAll()` -- a diferencia del genérico de
+     * `UsuarioTablaModel` (que trae toda la tabla), acá se filtra
+     * `rol = 'AGENTE'` para que el roster de "Técnicos" no incluya la
+     * fila del/los ADMIN (no hay pantalla de gestión de administradores,
+     * esos se administran por SQL).
+     * @return array{data: array<int, array<string, mixed>>, total: int}
+     */
+    public function listAll(int $page, int $pageSize): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM usuarios_administradores WHERE rol = 'AGENTE' ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        );
+        $stmt->bindValue(1, $pageSize, \PDO::PARAM_INT);
+        $stmt->bindValue(2, ($page - 1) * $pageSize, \PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetchAll();
+
+        $total = (int) $this->db->query("SELECT COUNT(*) FROM usuarios_administradores WHERE rol = 'AGENTE'")->fetchColumn();
+
+        return ['data' => $data, 'total' => $total];
+    }
+
     public function createAgente(string $nombre, string $apellido, string $titulo, int $nivel, string $email, string $passwordHash): int
     {
         $stmt = $this->db->prepare(

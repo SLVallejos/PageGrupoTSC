@@ -347,6 +347,23 @@
   opacity: 0.55;
 }
 
+/* Bloques "{Entidad} activos" / "{Entidad} dados de baja" dentro de
+   Clientes y Técnicos -- ver gruposActivoBajaHtml() en panel-admin.js. */
+.usuarios-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+}
+
+.usuarios-grupo__titulo {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 var(--space-1) 0;
+}
+
 /* Avatar de agente (foto o inicial) -- en el roster de Agentes de Soporte
    (--lg) y en "Asignado a"/"Lo está atendiendo" de tarjetas de ticket
    (--sm). `inline-flex` + `vertical-align: middle` para que se vea bien
@@ -912,6 +929,15 @@ body[data-page='panel-cliente'] .brand {
   background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--color-accent-dark);
   font-weight: var(--fw-semibold);
+}
+
+/* El `display: flex` de arriba gana contra el `display: none` del UA
+   stylesheet para `[hidden]` (misma especificidad, el CSS del autor
+   siempre gana) -- sin este override el atributo `hidden` no oculta
+   nada acá. Mismo patrón que ya usan `.reset-manual-form[hidden]`,
+   `.panel-topbar__user-menu[hidden]`, etc. más abajo en este archivo. */
+.panel-sidebar__link[hidden] {
+  display: none;
 }
 
 .panel-sidebar__badge {

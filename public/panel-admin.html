@@ -89,8 +89,8 @@
       </div>
       <div class="panel-sidebar__group">
         <span class="panel-sidebar__group-label">Administración</span>
-        <a href="#" class="panel-sidebar__link" data-section="usuarios">Usuarios</a>
-        <a href="#" class="panel-sidebar__link" data-section="administradores">Agentes de Soporte</a>
+        <a href="#" class="panel-sidebar__link" data-section="usuarios">Clientes</a>
+        <a href="#" class="panel-sidebar__link" data-section="administradores">Técnicos</a>
         <a href="#" class="panel-sidebar__link" data-section="categorias">Categorías</a>
       </div>
     </aside>
@@ -155,7 +155,7 @@
       <div id="dashboard-charts" class="dashboard-charts"></div>
 
       <div class="dashboard-block">
-        <h2 class="dashboard-block__title">Rendimiento por agente</h2>
+        <h2 class="dashboard-block__title">Rendimiento por técnico</h2>
         <div id="rendimiento-agentes"></div>
       </div>
     </section>
@@ -219,10 +219,10 @@
     <!-- ===== Fin Sección Tickets ===== -->
 
     <!-- ===== Inicio Sección Usuarios ===== -->
-    <section class="panel-section is-hidden" data-section="usuarios" aria-label="Administración de usuarios">
+    <section class="panel-section is-hidden" data-section="usuarios" aria-label="Administración de clientes">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Administración</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Usuarios</h2>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Clientes</h2>
       </div>
 
       <div id="usuarios-alert" class="panel-alert" role="alert"></div>
@@ -245,17 +245,17 @@
       </form>
 
       <div id="usuarios-list" class="usuarios-list"></div>
-      <p id="usuarios-status" class="panel-status">Cargando usuarios…</p>
+      <p id="usuarios-status" class="panel-status">Cargando clientes…</p>
     </section>
     <!-- ===== Fin Sección Usuarios ===== -->
 
     <!-- ===== Inicio Sección Agentes de Soporte ===== -->
-    <section class="panel-section is-hidden" data-section="administradores" aria-label="Agentes de soporte">
+    <section class="panel-section is-hidden" data-section="administradores" aria-label="Técnicos">
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Administración</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Agentes de Soporte</h2>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Técnicos</h2>
         <p class="section-heading__subtitle" style="margin-left:0;">
-          Cuentas que atienden tickets por nivel (1, 2 o 3) -- cada agente
+          Cuentas que atienden tickets por nivel (1, 2 o 3) -- cada técnico
           se loguea con su propio email y gestiona los tickets que toma.
         </p>
       </div>
@@ -292,11 +292,11 @@
           <input id="nuevo-admin-password" name="password" type="password" class="field__input" required minlength="8" placeholder="Mínimo 8 caracteres" />
           <ul class="password-hints" data-role="password-hints"></ul>
         </div>
-        <button type="submit" class="btn btn-primary">Crear agente</button>
+        <button type="submit" class="btn btn-primary">Crear técnico</button>
       </form>
 
       <div id="administradores-list" class="usuarios-list"></div>
-      <p id="administradores-status" class="panel-status">Cargando agentes…</p>
+      <p id="administradores-status" class="panel-status">Cargando técnicos…</p>
     </section>
     <!-- ===== Fin Sección Agentes de Soporte ===== -->
 
@@ -333,7 +333,7 @@
         <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mi Perfil</h2>
         <p class="section-heading__subtitle" style="margin-left:0;">
           Nombre, apellido y foto -- el título y el nivel los administra
-          quien gestiona Agentes de Soporte.
+          quien gestiona Técnicos.
         </p>
       </div>
 

@@ -29,7 +29,7 @@ final class AdministradorController extends GestionUsuariosController
 
     protected function etiqueta(): string
     {
-        return 'agente';
+        return 'técnico';
     }
 
     protected function camposExtra(array $u): array

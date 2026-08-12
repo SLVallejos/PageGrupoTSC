@@ -23,7 +23,10 @@ const validators = {
 };
 
 function redirigirSegunRol(usuario) {
-  window.location.href = usuario.rol === 'ADMIN' ? 'panel-admin.html' : 'panel-cliente.html';
+  // ADMIN y AGENTE comparten panel-admin.html; solo CLIENTE va al panel
+  // propio -- mismo criterio que ya usa `requireAuth()` en
+  // api-client.js para el redirect por 401.
+  window.location.href = usuario.rol === 'CLIENTE' ? 'panel-cliente.html' : 'panel-admin.html';
 }
 
 export async function initLoginForm() {

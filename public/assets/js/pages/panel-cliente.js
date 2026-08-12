@@ -33,7 +33,7 @@ const EVENTO_LABELS = {
   RESUELTO: 'Ticket resuelto',
   PAUSADO: 'Puesto en espera',
   REANUDADO: 'Reanudado',
-  DEVUELTO: 'Devuelto al agente original',
+  DEVUELTO: 'Devuelto al técnico original',
   CERRADO: 'Ticket cerrado',
   CANCELADO: 'Ticket cancelado',
 };
