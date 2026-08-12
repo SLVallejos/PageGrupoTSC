@@ -1304,16 +1304,28 @@ function gruposActivoBajaHtml(items, entidadPlural, rowFn) {
   const activos = items.filter((i) => i.activo);
   const bajas = items.filter((i) => !i.activo);
   const entidadMinuscula = entidadPlural.toLowerCase();
-  const bloque = (titulo, lista, vacioTexto) => `
+
+  const activosHtml = `
     <div class="usuarios-grupo">
-      <h3 class="usuarios-grupo__titulo">${escapeHtml(titulo)}</h3>
-      ${lista.length ? lista.map(rowFn).join('') : `<p class="panel-status">${escapeHtml(vacioTexto)}</p>`}
+      <h3 class="usuarios-grupo__titulo">${escapeHtml(entidadPlural)} activos</h3>
+      ${activos.length ? activos.map(rowFn).join('') : `<p class="panel-status">Sin ${entidadMinuscula} activos.</p>`}
     </div>
   `;
-  return (
-    bloque(`${entidadPlural} activos`, activos, `Sin ${entidadMinuscula} activos.`) +
-    bloque(`${entidadPlural} dados de baja`, bajas, `Sin ${entidadMinuscula} dados de baja.`)
-  );
+
+  // <details>/<summary> nativo -- colapsado por defecto, así los dados
+  // de baja no compiten visualmente con la lista de activos (que es la
+  // que se usa día a día); el contador en el título permite ver de un
+  // vistazo cuántos hay sin necesidad de abrirlo.
+  const bajasHtml = `
+    <details class="usuarios-grupo usuarios-grupo--baja">
+      <summary class="usuarios-grupo__titulo">${escapeHtml(entidadPlural)} dados de baja (${bajas.length})</summary>
+      <div class="usuarios-grupo__contenido">
+        ${bajas.length ? bajas.map(rowFn).join('') : `<p class="panel-status">Sin ${entidadMinuscula} dados de baja.</p>`}
+      </div>
+    </details>
+  `;
+
+  return activosHtml + bajasHtml;
 }
 
 /**

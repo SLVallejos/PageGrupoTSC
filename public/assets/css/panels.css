@@ -364,6 +364,38 @@
   margin: 0 0 var(--space-1) 0;
 }
 
+/* El bloque "dados de baja" es un <details> nativo (colapsado por
+   defecto) en vez de un <div> -- mismo look que .usuarios-grupo__titulo
+   para el <summary>, con cursor pointer para que se note que es
+   clickeable. */
+.usuarios-grupo--baja > summary.usuarios-grupo__titulo {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.usuarios-grupo--baja > summary.usuarios-grupo__titulo::-webkit-details-marker {
+  display: none;
+}
+
+.usuarios-grupo--baja > summary.usuarios-grupo__titulo::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: var(--space-1);
+  transition: transform 0.15s ease;
+}
+
+.usuarios-grupo--baja[open] > summary.usuarios-grupo__titulo::before {
+  transform: rotate(90deg);
+}
+
+.usuarios-grupo__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  margin-top: var(--space-2-5);
+}
+
 /* Avatar de agente (foto o inicial) -- en el roster de Agentes de Soporte
    (--lg) y en "Asignado a"/"Lo está atendiendo" de tarjetas de ticket
    (--sm). `inline-flex` + `vertical-align: middle` para que se vea bien
