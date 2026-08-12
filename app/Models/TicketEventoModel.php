@@ -41,17 +41,27 @@ final class TicketEventoModel extends BaseModel
         return $stmt->fetchAll();
     }
 
-    /** Últimos eventos de TODA la mesa de ayuda (no de un ticket puntual) -- para "Actividad reciente" del dashboard. */
-    public function listRecientes(int $limit = 15): array
+    /**
+     * Últimos eventos de TODA la mesa de ayuda (no de un ticket puntual)
+     * -- para "Actividad reciente" del dashboard. Con `$nivel` (agente)
+     * queda acotado a eventos de tickets de ese nivel.
+     */
+    public function listRecientes(int $limit = 15, ?int $nivel = null): array
     {
+        $nivelSql = $nivel !== null ? 'WHERE t.nivel = ?' : '';
         $stmt = $this->db->prepare(
-            'SELECT te.*, t.titulo AS ticket_titulo
+            "SELECT te.*, t.titulo AS ticket_titulo
              FROM ticket_eventos te
              JOIN tickets t ON t.id = te.ticket_id
+             {$nivelSql}
              ORDER BY te.created_at DESC, te.id DESC
-             LIMIT ?'
+             LIMIT ?"
         );
-        $stmt->bindValue(1, $limit, \PDO::PARAM_INT);
+        $i = 1;
+        if ($nivel !== null) {
+            $stmt->bindValue($i++, $nivel, \PDO::PARAM_INT);
+        }
+        $stmt->bindValue($i, $limit, \PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll();

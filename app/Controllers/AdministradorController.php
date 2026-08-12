@@ -38,6 +38,7 @@ final class AdministradorController extends GestionUsuariosController
             'apellido' => $u['apellido'],
             'titulo' => $u['titulo'],
             'nivel' => $u['nivel'] !== null ? (int) $u['nivel'] : null,
+            'rol' => $u['rol'],
             'fotoUrl' => $u['foto_url'] ? "/assets/uploads/avatars/{$u['foto_url']}" : null,
         ];
     }
@@ -70,7 +71,7 @@ final class AdministradorController extends GestionUsuariosController
             Validator::required($data, 'email'),
             Validator::email($data, 'email'),
             Validator::required($data, 'password'),
-            Validator::minLength($data, 'password', 6),
+            Validator::password($data, 'password'),
         ]);
         if ($errores) {
             $this->fail(implode(' ', $errores), 422);
@@ -98,17 +99,56 @@ final class AdministradorController extends GestionUsuariosController
     }
 
     /**
+     * "Mi perfil" -- autoedición de nombre/apellido únicamente (título/
+     * nivel/email siguen siendo del resorte del admin desde el roster de
+     * Agentes de Soporte). Nunca toma el id de la URL/body -- siempre es
+     * la propia sesión, así que no hay forma de editar el perfil de otro.
+     */
+    public function actualizarPerfil(Request $request): void
+    {
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $data = $request->all();
+
+        $errores = array_filter([
+            Validator::required($data, 'nombre'),
+            Validator::maxLength($data, 'nombre', 150),
+            Validator::required($data, 'apellido'),
+            Validator::maxLength($data, 'apellido', 150),
+        ]);
+        if ($errores) {
+            $this->fail(implode(' ', $errores), 422);
+        }
+
+        $nombre = (string) $request->input('nombre');
+        $apellido = (string) $request->input('apellido');
+        (new AdministradorLocalModel())->updatePerfil((int) $usuario['id'], $nombre, $apellido);
+
+        // Refresca la sesión -- si no, el "Hola, {nombre}" del header
+        // quedaría con el nombre viejo hasta el próximo login.
+        $_SESSION['usuario']['nombre'] = $nombre;
+        $_SESSION['usuario']['apellido'] = $apellido;
+
+        $this->success(['nombre' => $nombre, 'apellido' => $apellido]);
+    }
+
+    /**
      * Foto de perfil del agente -- a diferencia de los adjuntos de ticket
      * (`TicketController::subirAdjunto()`, mismo patrón de validación de
      * MIME real), se guarda dentro de `public/` porque una foto de perfil
      * está pensada para mostrarse siempre (tarjetas de ticket, roster),
-     * no para quedar detrás de un control de acceso por ticket.
+     * no para quedar detrás de un control de acceso por ticket. Un admin
+     * puede subir la foto de cualquier agente desde el roster; un agente
+     * (autoedición desde "Mi perfil") solo la suya.
      */
     public function subirFoto(Request $request, array $params): void
     {
-        $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new AdministradorLocalModel();
         $id = (int) $params['id'];
+
+        if ($usuario['rol'] === 'AGENTE' && $id !== (int) $usuario['id']) {
+            $this->fail('No podés cambiar la foto de otro agente.', 403);
+        }
 
         $archivo = $request->file('foto');
         if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {

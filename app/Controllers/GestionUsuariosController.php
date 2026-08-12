@@ -47,7 +47,7 @@ abstract class GestionUsuariosController extends BaseController
             Validator::required($data, 'email'),
             Validator::email($data, 'email'),
             Validator::required($data, 'password'),
-            Validator::minLength($data, 'password', 6),
+            Validator::password($data, 'password'),
         ]);
         if ($errores) {
             $this->fail(implode(' ', $errores), 422);
@@ -81,30 +81,25 @@ abstract class GestionUsuariosController extends BaseController
     }
 
     /**
-     * Sin `password` en el body genera una temporal al azar (comportamiento
-     * de siempre); con `password`, la usa tal cual (validada) -- para
-     * cuando el admin quiere asignar una contraseña manual en vez de una
-     * generada.
+     * Siempre manual -- no existe generación aleatoria de contraseñas en
+     * ningún lado del panel. El admin escribe la contraseña nueva a
+     * mano, con la misma política que al crear una cuenta.
      */
     public function resetPassword(Request $request, array $params): void
     {
         $this->requireAuth(['ADMIN']);
         $data = $request->all();
 
-        $passwordManual = $request->input('password');
-        if ($passwordManual !== null && $passwordManual !== '') {
-            $error = Validator::minLength($data, 'password', 6);
-            if ($error) {
-                $this->fail($error, 422);
-            }
-            $nuevaPassword = (string) $passwordManual;
-        } else {
-            $nuevaPassword = bin2hex(random_bytes(6));
+        $errores = array_filter([
+            Validator::required($data, 'password'),
+            Validator::password($data, 'password'),
+        ]);
+        if ($errores) {
+            $this->fail(implode(' ', $errores), 422);
         }
 
-        $this->modelo()->updatePassword((int) $params['id'], password_hash($nuevaPassword, PASSWORD_BCRYPT));
-
-        $this->success(['passwordTemporal' => $nuevaPassword]);
+        $this->modelo()->updatePassword((int) $params['id'], password_hash((string) $request->input('password'), PASSWORD_BCRYPT));
+        $this->success(null);
     }
 
     private function formatUsuario(array $u): array

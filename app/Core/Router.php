@@ -33,6 +33,12 @@ final class Router
         $this->routes['PATCH'][$path] = $handler;
     }
 
+    /** @param array{0: class-string, 1: string} $handler */
+    public function delete(string $path, array $handler): void
+    {
+        $this->routes['DELETE'][$path] = $handler;
+    }
+
     public function dispatch(Request $request): void
     {
         $methodRoutes = $this->routes[$request->method()] ?? [];

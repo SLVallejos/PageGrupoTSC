@@ -58,6 +58,7 @@
           </svg>
         </button>
         <div id="panel-user-menu" class="panel-topbar__user-menu" hidden>
+          <a href="#" id="panel-mi-perfil-link" class="btn btn-secondary btn--sm" data-section="mi-perfil">Mi perfil</a>
           <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
         </div>
       </div>
@@ -126,12 +127,37 @@
       <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
         <span class="section-kicker">Panel de administración</span>
         <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Estadísticas</h1>
-        <p class="section-heading__subtitle" style="margin-left:0;">Distribución y tendencia de tickets</p>
+        <p class="section-heading__subtitle" style="margin-left:0;">Distribución, tendencia y rendimiento de tickets</p>
       </div>
 
       <div id="estadisticas-alert" class="panel-alert" role="alert"></div>
 
+      <div class="glass-card panel-filters" id="estadisticas-filtros">
+        <div class="chip-group" id="estadisticas-presets">
+          <button type="button" class="chip" data-preset="7">Últimos 7 días</button>
+          <button type="button" class="chip is-active" data-preset="30">Últimos 30 días</button>
+          <button type="button" class="chip" data-preset="mes">Este mes</button>
+          <button type="button" class="chip" data-preset="personalizado">Personalizado</button>
+        </div>
+        <div class="field" id="estadisticas-desde-campo" hidden>
+          <label for="estadisticas-desde" class="field__label field__label--form">Desde</label>
+          <input type="date" id="estadisticas-desde" class="field__input" />
+        </div>
+        <div class="field" id="estadisticas-hasta-campo" hidden>
+          <label for="estadisticas-hasta" class="field__label field__label--form">Hasta</label>
+          <input type="date" id="estadisticas-hasta" class="field__input" />
+        </div>
+        <button type="button" class="btn btn-primary btn--sm" id="estadisticas-aplicar" hidden>Aplicar</button>
+      </div>
+
+      <div id="estadisticas-kpis" class="dashboard-stats"></div>
+
       <div id="dashboard-charts" class="dashboard-charts"></div>
+
+      <div class="dashboard-block">
+        <h2 class="dashboard-block__title">Rendimiento por agente</h2>
+        <div id="rendimiento-agentes"></div>
+      </div>
     </section>
     <!-- ===== Fin Sección Estadísticas ===== -->
 
@@ -149,9 +175,14 @@
           <label for="filter-estado" class="field__label field__label--form">Estado</label>
           <select id="filter-estado" class="field__input">
             <option value="">Todos</option>
-            <option value="NEW">Nuevo</option>
+            <option value="ABIERTO">Abierto</option>
+            <option value="PENDIENTE_ASIGNACION">Pendiente de asignación</option>
             <option value="EN_PROCESO">En proceso</option>
+            <option value="ESCALADO">Escalado</option>
+            <option value="EN_ESPERA">En espera</option>
             <option value="RESUELTO">Resuelto</option>
+            <option value="CERRADO">Cerrado</option>
+            <option value="CANCELADO">Cancelado</option>
           </select>
         </div>
         <div class="field">
@@ -207,7 +238,8 @@
         </div>
         <div class="field">
           <label for="nuevo-password" class="field__label field__label--form">Contraseña</label>
-          <input id="nuevo-password" name="password" type="password" class="field__input" required minlength="6" placeholder="Mínimo 6 caracteres" />
+          <input id="nuevo-password" name="password" type="password" class="field__input" required minlength="8" placeholder="Mínimo 8 caracteres" />
+          <ul class="password-hints" data-role="password-hints"></ul>
         </div>
         <button type="submit" class="btn btn-primary">Crear cliente</button>
       </form>
@@ -257,7 +289,8 @@
         </div>
         <div class="field">
           <label for="nuevo-admin-password" class="field__label field__label--form">Contraseña</label>
-          <input id="nuevo-admin-password" name="password" type="password" class="field__input" required minlength="6" placeholder="Mínimo 6 caracteres" />
+          <input id="nuevo-admin-password" name="password" type="password" class="field__input" required minlength="8" placeholder="Mínimo 8 caracteres" />
+          <ul class="password-hints" data-role="password-hints"></ul>
         </div>
         <button type="submit" class="btn btn-primary">Crear agente</button>
       </form>
@@ -292,6 +325,42 @@
       <p id="categorias-status" class="panel-status">Cargando categorías…</p>
     </section>
     <!-- ===== Fin Sección Categorías ===== -->
+
+    <!-- ===== Inicio Sección Mi Perfil ===== -->
+    <section class="panel-section is-hidden" data-section="mi-perfil" aria-label="Mi perfil">
+      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+        <span class="section-kicker">Mi cuenta</span>
+        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mi Perfil</h2>
+        <p class="section-heading__subtitle" style="margin-left:0;">
+          Nombre, apellido y foto -- el título y el nivel los administra
+          quien gestiona Agentes de Soporte.
+        </p>
+      </div>
+
+      <div id="mi-perfil-alert" class="panel-alert" role="alert"></div>
+
+      <div class="glass-card" style="max-width: 480px; padding: var(--space-5);">
+        <div style="display:flex; align-items:center; gap: var(--space-4); margin-bottom: var(--space-5);">
+          <div id="mi-perfil-avatar"></div>
+          <div style="display:flex; flex-direction:column; gap: var(--space-2);">
+            <input type="file" id="mi-perfil-foto-input" accept="image/jpeg,image/png,image/webp" />
+            <button type="button" class="btn btn-secondary btn--sm" id="mi-perfil-foto-confirmar">Subir foto</button>
+          </div>
+        </div>
+        <form id="mi-perfil-form" class="panel-form" style="padding: 0; margin-bottom: 0; grid-template-columns: 1fr;" novalidate>
+          <div class="field">
+            <label for="mi-perfil-nombre" class="field__label field__label--form">Nombre</label>
+            <input id="mi-perfil-nombre" name="nombre" class="field__input" required maxlength="150" />
+          </div>
+          <div class="field">
+            <label for="mi-perfil-apellido" class="field__label field__label--form">Apellido</label>
+            <input id="mi-perfil-apellido" name="apellido" class="field__input" required maxlength="150" />
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </form>
+      </div>
+    </section>
+    <!-- ===== Fin Sección Mi Perfil ===== -->
   </main>
     </div>
   </div>

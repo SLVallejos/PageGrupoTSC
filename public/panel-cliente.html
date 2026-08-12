@@ -88,8 +88,8 @@
         </div>
         <div class="field">
           <label for="ticket-categoria" class="field__label field__label--form">Categoría</label>
-          <select id="ticket-categoria" name="categoriaId" class="field__input">
-            <option value="">Sin categoría</option>
+          <select id="ticket-categoria" name="categoriaId" class="field__input" required>
+            <option value="" disabled selected>Seleccioná una categoría…</option>
           </select>
         </div>
         <div class="field">
@@ -112,6 +112,8 @@
         <span class="section-kicker">Seguimiento</span>
         <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mis Tickets</h2>
       </div>
+
+      <div id="tickets-alert" class="panel-alert" role="alert"></div>
 
       <div id="tickets-list" class="tickets-list"></div>
       <p id="tickets-status" class="panel-status">Cargando tickets…</p>

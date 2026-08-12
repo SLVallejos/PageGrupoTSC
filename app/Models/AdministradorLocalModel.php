@@ -19,6 +19,12 @@ final class AdministradorLocalModel extends UsuarioTablaModel
         return 'usuarios_administradores';
     }
 
+    /**
+     * Requerido por el contrato abstracto de `UsuarioTablaModel::findByEmail()`
+     * -- esta clase overridea `findByEmail()` por completo y usa la
+     * columna `rol` real de la fila (ADMIN o AGENTE), así que este valor
+     * fijo no se usa en la práctica.
+     */
     protected function rol(): string
     {
         return 'ADMIN';
@@ -37,7 +43,7 @@ final class AdministradorLocalModel extends UsuarioTablaModel
     public function findByEmail(string $email): ?array
     {
         $stmt = $this->db->prepare(
-            'SELECT id, nombre, apellido, titulo, nivel, foto_url, email, password_hash
+            'SELECT id, nombre, apellido, titulo, nivel, rol, foto_url, email, password_hash
              FROM usuarios_administradores WHERE email = ? AND activo = 1 LIMIT 1'
         );
         $stmt->execute([$email]);
@@ -51,7 +57,11 @@ final class AdministradorLocalModel extends UsuarioTablaModel
             'id' => (int) $row['id'],
             'nombre' => $row['nombre'],
             'email' => $row['email'],
-            'rol' => $this->rol(),
+            // Rol real de la fila (ADMIN o AGENTE), no `$this->rol()` --
+            // ese método queda solo para satisfacer el contrato abstracto
+            // de UsuarioTablaModel, sin uso real acá (ver comentario en
+            // `rol()` más abajo).
+            'rol' => $row['rol'],
             'passwordHash' => $row['password_hash'],
             'apellido' => $row['apellido'],
             'titulo' => $row['titulo'],
@@ -84,5 +94,12 @@ final class AdministradorLocalModel extends UsuarioTablaModel
     {
         $stmt = $this->db->prepare('UPDATE usuarios_administradores SET foto_url = ? WHERE id = ?');
         $stmt->execute([$fotoUrl, $id]);
+    }
+
+    /** Autoedición de "Mi perfil" -- solo nombre/apellido (título/nivel/email los sigue manejando el admin desde el roster). */
+    public function updatePerfil(int $id, string $nombre, string $apellido): void
+    {
+        $stmt = $this->db->prepare('UPDATE usuarios_administradores SET nombre = ?, apellido = ? WHERE id = ?');
+        $stmt->execute([$nombre, $apellido, $id]);
     }
 }

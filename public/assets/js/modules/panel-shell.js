@@ -8,9 +8,17 @@ import { qs, qsa } from '../utils.js';
  * `data-section` (ej. "Todos"/"Nivel 1"/"Mis tickets" son todos
  * `data-section="tickets"` con distinto filtro), así que qué link queda
  * activo lo decide quien llama (ver `setActiveSidebarLink`).
+ *
+ * El header es `position: fixed` (ver panels.css), así que el dropdown
+ * de usuario sigue visible sin importar cuánto scroll tenga la página --
+ * si se cambia de sección estando scrolleado (ej. abajo del todo en una
+ * lista larga de tickets) y la sección nueva es más corta, queda fuera
+ * de la ventana y parece que el click "no hizo nada". Por eso todo
+ * cambio de sección resetea el scroll al tope.
  */
 export function showSection(key) {
   qsa('.panel-section').forEach((el) => el.classList.toggle('is-hidden', el.dataset.section !== key));
+  window.scrollTo(0, 0);
 }
 
 /** Marca `link` como el único ítem activo del sidebar (o ninguno, si se pasa null). */

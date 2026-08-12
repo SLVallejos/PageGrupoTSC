@@ -68,7 +68,7 @@ export async function getSesionActual() {
  * roles permitidos, que el usuario tenga uno de esos roles. Redirige a
  * login.html (sin sesión) o al panel que le corresponde (rol equivocado)
  * en vez de dejarlo ver una pantalla que no es para él.
- * @param {Array<'ADMIN'|'CLIENTE'>} [rolesPermitidos]
+ * @param {Array<'ADMIN'|'AGENTE'|'CLIENTE'>} [rolesPermitidos]
  */
 export async function requireAuth(rolesPermitidos) {
   const usuario = await getSesionActual();
@@ -79,7 +79,7 @@ export async function requireAuth(rolesPermitidos) {
   }
 
   if (rolesPermitidos && !rolesPermitidos.includes(usuario.rol)) {
-    window.location.href = usuario.rol === 'ADMIN' ? 'panel-admin.html' : 'panel-cliente.html';
+    window.location.href = usuario.rol === 'CLIENTE' ? 'panel-cliente.html' : 'panel-admin.html';
     return null;
   }
 

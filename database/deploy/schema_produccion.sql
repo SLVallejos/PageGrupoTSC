@@ -13,16 +13,18 @@ CREATE TABLE IF NOT EXISTS usuarios_clientes (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- "Agentes de Soporte" (Nivel 1/2/3) además del único super-admin de
--- arranque (sin apellido/titulo/nivel/foto_url -- quedan NULL para él).
--- El nivel es solo organizativo, no fuerza el nivel de escalamiento del
--- ticket (columna `tickets.nivel`, independiente).
+-- "Agentes de Soporte" (Nivel 1/2/3, rol AGENTE) además del único
+-- super-admin de arranque (rol ADMIN, sin apellido/titulo/nivel/foto_url
+-- -- quedan NULL para él). El nivel de un agente es una restricción real:
+-- el backend solo le deja ver/gestionar tickets de su propio nivel
+-- (columna `tickets.nivel`, independiente de este `nivel`).
 CREATE TABLE IF NOT EXISTS usuarios_administradores (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
     apellido VARCHAR(150) NULL,
     titulo VARCHAR(150) NULL,
     nivel TINYINT UNSIGNED NULL,
+    rol ENUM('ADMIN','AGENTE') NOT NULL DEFAULT 'AGENTE',
     foto_url VARCHAR(255) NULL,
     email VARCHAR(254) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -44,7 +46,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     cliente_id INT UNSIGNED NOT NULL,
     titulo VARCHAR(200) NOT NULL,
     descripcion TEXT NOT NULL,
-    estado ENUM('NEW','EN_PROCESO','RESUELTO') NOT NULL DEFAULT 'NEW',
+    estado ENUM('ABIERTO','PENDIENTE_ASIGNACION','EN_PROCESO','ESCALADO','EN_ESPERA','RESUELTO','CERRADO','CANCELADO') NOT NULL DEFAULT 'ABIERTO',
     prioridad ENUM('BAJA','MEDIA','ALTA','URGENTE') NOT NULL DEFAULT 'MEDIA',
     categoria_id INT UNSIGNED NULL,
     nivel TINYINT UNSIGNED NOT NULL DEFAULT 1,
@@ -52,8 +54,15 @@ CREATE TABLE IF NOT EXISTS tickets (
     asignado_a_nombre VARCHAR(150) NULL,
     asignado_a_foto VARCHAR(255) NULL,
     asignado_a_titulo VARCHAR(150) NULL,
+    agente_original_id INT UNSIGNED NULL,
+    agente_original_nombre VARCHAR(150) NULL,
+    agente_original_foto VARCHAR(255) NULL,
+    agente_original_titulo VARCHAR(150) NULL,
+    nivel_original TINYINT UNSIGNED NULL,
     solucion TEXT NULL,
     resuelto_at TIMESTAMP NULL,
+    cerrado_at TIMESTAMP NULL,
+    cancelado_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (cliente_id) REFERENCES usuarios_clientes(id),
@@ -95,7 +104,7 @@ CREATE TABLE IF NOT EXISTS ticket_adjuntos (
 CREATE TABLE IF NOT EXISTS ticket_eventos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ticket_id INT UNSIGNED NOT NULL,
-    tipo ENUM('CREADO','ASIGNADO','LIBERADO','ESTADO','PRIORIDAD','ESCALADO','COMENTARIO','RESUELTO') NOT NULL,
+    tipo ENUM('CREADO','ASIGNADO','LIBERADO','ESTADO','PRIORIDAD','ESCALADO','COMENTARIO','RESUELTO','PAUSADO','REANUDADO','DEVUELTO','CERRADO','CANCELADO') NOT NULL,
     autor_tipo ENUM('CLIENTE','ADMIN') NOT NULL,
     autor_nombre VARCHAR(150) NOT NULL,
     detalle TEXT NULL,
@@ -111,12 +120,13 @@ CREATE TABLE IF NOT EXISTS ticket_eventos (
 -- contraseña desde "Resetear contraseña" en el panel apenas puedas
 -- loguearte. Password en texto plano (una sola vez, no se repite en
 -- ningún otro lado): ad89052b1d4d8ece14
-INSERT INTO usuarios_administradores (nombre, email, password_hash) VALUES (
+INSERT INTO usuarios_administradores (nombre, email, password_hash, rol) VALUES (
     'Admin Beta',
     'admin@beta.grupotsc-ar.com',
-    '$2y$10$RkRZFHeBz8evIIjm0EHYP.Z47nZNuhDZGZyNab23ynkhEiMPhmEwe'
+    '$2y$10$RkRZFHeBz8evIIjm0EHYP.Z47nZNuhDZGZyNab23ynkhEiMPhmEwe',
+    'ADMIN'
 );
 
 INSERT INTO categorias (nombre) VALUES
-    ('Hardware'), ('Software'), ('Redes'), ('Impresoras'),
-    ('Sistemas'), ('Accesos'), ('SAP'), ('Correo'), ('Otros');
+    ('Impresoras'), ('Wi-Fi'), ('Cámaras'), ('Computadoras'),
+    ('Alarma'), ('Control de Acceso'), ('Otros');

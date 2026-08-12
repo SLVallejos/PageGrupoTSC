@@ -16,16 +16,17 @@ use App\Models\TicketModel;
 use finfo;
 
 /**
- * Tickets de soporte: creación/seguimiento (cliente) y gestión (admin —
- * adjudicar/liberar, estado, prioridad, escalar nivel, resolver,
- * comentar, adjuntar archivos). El cliente solo puede ver/comentar/
- * adjuntar en sus propios tickets (`requireTicketAccess`); el admin puede
- * actuar sobre cualquiera, salvo que ya esté RESUELTO (`assertNotResuelto`
- * — bloqueado por completo, ver docs/BACKEND_RESET_REPORT.md).
+ * Tickets de soporte: creación/seguimiento (cliente) y gestión (admin/
+ * agente — adjudicar/liberar, pausar/reanudar, prioridad, escalar
+ * nivel, resolver, cerrar, comentar, adjuntar archivos). El cliente solo
+ * puede ver/comentar/adjuntar en sus propios tickets
+ * (`requireTicketAccess`); el admin/agente puede actuar sobre cualquiera
+ * de su alcance (ver `assertNivelPermitido`), salvo que ya esté
+ * RESUELTO o CERRADO (`assertEditable` — bloqueado por completo, con la
+ * excepción de `cerrar()`, la única transición válida desde RESUELTO).
  */
 final class TicketController extends BaseController
 {
-    private const ESTADOS_EDITABLES = ['NEW', 'EN_PROCESO'];
     private const PRIORIDADES = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
     private const PAGE_SIZE = 10;
     private const MAX_ADJUNTO_BYTES = 5 * 1024 * 1024;
@@ -46,7 +47,7 @@ final class TicketController extends BaseController
 
         $model = new TicketModel();
 
-        if ($usuario['rol'] === 'ADMIN') {
+        if (in_array($usuario['rol'], ['ADMIN', 'AGENTE'], true)) {
             $filtros = array_filter([
                 'estado' => $request->query('estado'),
                 'prioridad' => $request->query('prioridad'),
@@ -59,6 +60,13 @@ final class TicketController extends BaseController
                 'sinAsignar' => $request->query('sinAsignar') ? true : null,
                 'categoriaId' => $request->query('categoriaId') ? (int) $request->query('categoriaId') : null,
             ]);
+            // Un agente solo puede ver tickets de su propio nivel -- se
+            // fuerza acá, pisando cualquier valor de "nivel" que haya
+            // mandado el cliente, para que no lo pueda cambiar por query
+            // string (ver AGENTE en `assertNivelPermitido()`).
+            if ($usuario['rol'] === 'AGENTE') {
+                $filtros['nivel'] = (int) $usuario['nivel'];
+            }
             $resultado = $model->listForAdmin($filtros, $page, self::PAGE_SIZE);
             $tickets = array_map(fn (array $t) => $this->formatTicket($t, true), $resultado['data']);
         } else {
@@ -80,6 +88,7 @@ final class TicketController extends BaseController
             Validator::maxLength($data, 'titulo', 200),
             Validator::required($data, 'descripcion'),
             Validator::inArray($data, 'prioridad', self::PRIORIDADES),
+            Validator::required($data, 'categoriaId'),
         ]);
         if ($errores) {
             $this->fail(implode(' ', $errores), 422);
@@ -100,13 +109,9 @@ final class TicketController extends BaseController
         $this->success(['id' => $id], 201);
     }
 
-    /** Categoría opcional al crear un ticket -- si viene, tiene que existir y estar activa. */
-    private function resolveCategoriaId(mixed $categoriaId): ?int
+    /** Categoría obligatoria al crear un ticket -- tiene que existir y estar activa (ya se validó que no venga vacía). */
+    private function resolveCategoriaId(mixed $categoriaId): int
     {
-        if ($categoriaId === null || $categoriaId === '') {
-            return null;
-        }
-
         $categoria = (new CategoriaModel())->findById((int) $categoriaId);
         if (!$categoria || !$categoria['activo']) {
             $this->fail('Categoría inválida.', 422);
@@ -117,10 +122,11 @@ final class TicketController extends BaseController
 
     public function asignar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
 
         [$foto, $titulo] = $this->perfilAgenteActual($usuario);
         $model->asignar(
@@ -136,44 +142,146 @@ final class TicketController extends BaseController
 
     public function liberar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
+
+        if ($ticket['estado'] !== 'EN_PROCESO' && $ticket['estado'] !== 'EN_ESPERA') {
+            $this->fail('Solo se puede liberar un ticket en proceso o en espera.', 409);
+        }
 
         $model->liberar((int) $params['id']);
         (new TicketEventoModel())->registrar((int) $params['id'], 'LIBERADO', 'ADMIN', (string) $usuario['nombre'], 'Se liberó el ticket.');
         $this->success(null);
     }
 
-    public function estado(Request $request, array $params): void
+    public function pausar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
+
+        if ($ticket['estado'] !== 'EN_PROCESO') {
+            $this->fail('Solo se puede marcar en espera un ticket en proceso.', 409);
+        }
+
+        $model->pausar((int) $params['id']);
+        (new TicketEventoModel())->registrar((int) $params['id'], 'PAUSADO', 'ADMIN', (string) $usuario['nombre'], 'Ticket puesto en espera.');
+        $this->success(null);
+    }
+
+    public function reanudar(Request $request, array $params): void
+    {
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $model = new TicketModel();
+        $ticket = $this->findTicketOrFail($model, (int) $params['id']);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
+
+        if ($ticket['estado'] !== 'EN_ESPERA') {
+            $this->fail('Solo se puede reanudar un ticket en espera.', 409);
+        }
+
+        $model->reanudar((int) $params['id']);
+        (new TicketEventoModel())->registrar((int) $params['id'], 'REANUDADO', 'ADMIN', (string) $usuario['nombre'], 'Ticket reanudado.');
+        $this->success(null);
+    }
+
+    /** Única transición válida desde RESUELTO -- por eso no pasa por `assertEditable()`, que justamente bloquea ese estado. */
+    public function cerrar(Request $request, array $params): void
+    {
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $model = new TicketModel();
+        $ticket = $this->findTicketOrFail($model, (int) $params['id']);
+        $this->assertNivelPermitido($usuario, $ticket);
+
+        if ($ticket['estado'] !== 'RESUELTO') {
+            $this->fail('Solo se puede cerrar un ticket resuelto.', 409);
+        }
+
+        $model->cerrar((int) $params['id']);
+        (new TicketEventoModel())->registrar((int) $params['id'], 'CERRADO', 'ADMIN', (string) $usuario['nombre'], 'Ticket cerrado.');
+        $this->success(null);
+    }
+
+    /**
+     * Cancelar (soft) -- el cliente su propio ticket, o el staff dentro
+     * de su nivel (`requireTicketAccess` ya cubre los dos casos).
+     * Requiere motivo y queda auditado en el historial, a diferencia de
+     * `eliminar()` (borrado duro, sin rastro).
+     */
+    public function cancelar(Request $request, array $params): void
+    {
+        $usuario = $this->requireAuth();
+        $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
+        $this->assertEditable($ticket);
 
         $data = $request->all();
-        // RESUELTO no se setea acá -- eso pasa por resolver(), que exige una solución.
-        $error = Validator::inArray($data, 'estado', self::ESTADOS_EDITABLES);
+        $error = Validator::required($data, 'motivo');
         if ($error) {
             $this->fail($error, 422);
         }
 
-        $nuevoEstado = (string) $request->input('estado');
-        $model->updateEstado((int) $params['id'], $nuevoEstado);
-        // `detalle` guarda el código crudo (ej. "EN_PROCESO") -- el frontend
-        // ya tiene el mapa ESTADOS para traducirlo, no duplicarlo acá.
-        (new TicketEventoModel())->registrar((int) $params['id'], 'ESTADO', 'ADMIN', (string) $usuario['nombre'], $nuevoEstado);
+        (new TicketModel())->cancelar((int) $params['id']);
+
+        $autorTipo = $usuario['rol'] === 'CLIENTE' ? 'CLIENTE' : 'ADMIN';
+        (new TicketEventoModel())->registrar(
+            (int) $params['id'],
+            'CANCELADO',
+            $autorTipo,
+            (string) $usuario['nombre'],
+            null,
+            null,
+            null,
+            (string) $request->input('motivo')
+        );
+        $this->success(null);
+    }
+
+    /**
+     * Borrado duro -- solo el cliente dueño del ticket, y solo si nunca
+     * fue tocado por soporte (`agente_original_id` sigue en null). Si
+     * ya lo asignaron, corresponde `cancelar()` en su lugar: acá no
+     * queda ningún rastro, no hay nada que auditar porque no pasó nada.
+     */
+    public function eliminar(Request $request, array $params): void
+    {
+        $usuario = $this->requireAuth(['CLIENTE']);
+        $model = new TicketModel();
+        $ticket = $this->findTicketOrFail($model, (int) $params['id']);
+
+        if ((int) $ticket['cliente_id'] !== (int) $usuario['id']) {
+            $this->fail('No tenés acceso a este ticket.', 403);
+        }
+        if ($ticket['agente_original_id'] !== null) {
+            $this->fail('Este ticket ya fue tomado por soporte, no se puede eliminar -- podés cancelarlo.', 409);
+        }
+        if ($ticket['estado'] === 'CANCELADO') {
+            $this->fail('Este ticket ya está cancelado.', 409);
+        }
+
+        foreach ((new TicketAdjuntoModel())->listByTicket((int) $params['id']) as $adjunto) {
+            $ruta = self::adjuntosPath() . '/' . $adjunto['nombre_almacenado'];
+            if (is_file($ruta)) {
+                @unlink($ruta);
+            }
+        }
+
+        $model->eliminar((int) $params['id']);
         $this->success(null);
     }
 
     public function prioridad(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
 
         $data = $request->all();
         $error = Validator::inArray($data, 'prioridad', self::PRIORIDADES);
@@ -189,10 +297,15 @@ final class TicketController extends BaseController
 
     public function escalar(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
+
+        if ($ticket['estado'] !== 'EN_PROCESO' && $ticket['estado'] !== 'EN_ESPERA') {
+            $this->fail('Solo se puede escalar un ticket en proceso o en espera.', 409);
+        }
 
         $data = $request->all();
         $error = Validator::required($data, 'motivo');
@@ -222,10 +335,15 @@ final class TicketController extends BaseController
 
     public function resolver(Request $request, array $params): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
         $model = new TicketModel();
         $ticket = $this->findTicketOrFail($model, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertNivelPermitido($usuario, $ticket);
+        $this->assertEditable($ticket);
+
+        if ($ticket['estado'] !== 'EN_PROCESO' && $ticket['estado'] !== 'EN_ESPERA') {
+            $this->fail('Solo se puede resolver un ticket en proceso o en espera.', 409);
+        }
 
         $data = $request->all();
         $error = Validator::required($data, 'solucion');
@@ -233,31 +351,73 @@ final class TicketController extends BaseController
             $this->fail($error, 422);
         }
 
+        // Si el agente original difiere del actual, el ticket fue
+        // escalado en algún momento -- TicketModel::resolver() lo
+        // devuelve solo (mismo UPDATE), acá solo hace falta decidir si
+        // corresponde registrar el evento DEVUELTO además del RESUELTO.
+        $huboDevolucion = $ticket['agente_original_id'] !== null
+            && (int) $ticket['agente_original_id'] !== (int) $ticket['asignado_a_id'];
+
         $model->resolver((int) $params['id'], (string) $request->input('solucion'));
         (new TicketEventoModel())->registrar((int) $params['id'], 'RESUELTO', 'ADMIN', (string) $usuario['nombre'], 'Ticket resuelto.');
+
+        if ($huboDevolucion) {
+            (new TicketEventoModel())->registrar(
+                (int) $params['id'],
+                'DEVUELTO',
+                'ADMIN',
+                (string) $usuario['nombre'],
+                "Devuelto a {$ticket['agente_original_nombre']}.",
+                (int) $ticket['nivel'],
+                (int) $ticket['nivel_original']
+            );
+        }
+
         $this->success(null);
     }
 
-    /** Cantidad de tickets NEW por nivel, para el badge de cada pestaña. */
+    /**
+     * Cantidad de tickets NEW por nivel, para el badge de cada pestaña y
+     * la campana del header. Un agente solo ve el conteo de su propio
+     * nivel -- los demás quedan en 0 (no tiene sentido que se entere de
+     * cuántos tickets nuevos hay en un nivel al que no tiene acceso).
+     */
     public function resumenNuevos(Request $request): void
     {
-        $this->requireAuth(['ADMIN']);
-        $this->success((new TicketModel())->contarNuevosPorNivel());
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $conteo = (new TicketModel())->contarNuevosPorNivel();
+
+        if ($usuario['rol'] === 'AGENTE') {
+            foreach ($conteo as $nivel => $cantidad) {
+                if ($nivel !== (int) $usuario['nivel']) {
+                    $conteo[$nivel] = 0;
+                }
+            }
+        }
+
+        $this->success($conteo);
     }
 
-    /** Contadores + "Atención requerida" + "Actividad reciente" para el dashboard (sección "Inicio" del panel admin). */
+    /**
+     * Contadores + "Atención requerida" + "Actividad reciente" para el
+     * dashboard (sección "Inicio"). Un agente ve el mismo shape de
+     * respuesta que un admin, pero acotado a su propio nivel (`$nivel`
+     * se pasa a cada método del modelo); un admin sigue viendo todo,
+     * global (`$nivel = null`).
+     */
     public function dashboard(Request $request): void
     {
-        $usuario = $this->requireAuth(['ADMIN']);
+        $usuario = $this->requireAuth(['ADMIN', 'AGENTE']);
+        $nivel = $usuario['rol'] === 'AGENTE' ? (int) $usuario['nivel'] : null;
         $model = new TicketModel();
 
-        $counts = $model->contarDashboard((int) $usuario['id']);
+        $counts = $model->contarDashboard((int) $usuario['id'], $nivel);
 
         // SLA en riesgo/vencido -- reusa Sla::calcular(), no duplica el
         // cálculo de plazos acá.
         $slaEnRiesgo = 0;
         $slaVencido = 0;
-        foreach ($model->listNoResueltosParaSla() as $t) {
+        foreach ($model->listNoResueltosParaSla($nivel) as $t) {
             $estado = Sla::calcular($t['prioridad'], $t['created_at'], null)['estado'];
             if ($estado === 'PROXIMO') {
                 $slaEnRiesgo++;
@@ -271,7 +431,7 @@ final class TicketController extends BaseController
         // Atención requerida: mismos candidatos que listForAdmin, filtrados a
         // los que tienen al menos un motivo, reusando formatTicket() entero.
         $atencionRequerida = [];
-        foreach ($model->listAtencionRequerida(50) as $row) {
+        foreach ($model->listAtencionRequerida(50, $nivel) as $row) {
             $ticket = $this->formatTicket($row, true);
             $motivos = [];
             if ($ticket['slaEstado'] === 'VENCIDO') {
@@ -305,12 +465,8 @@ final class TicketController extends BaseController
 
                 return $formatted;
             },
-            (new TicketEventoModel())->listRecientes(15)
+            (new TicketEventoModel())->listRecientes(15, $nivel)
         );
-
-        $counts['porEstado'] = $model->contarPorEstado();
-        $counts['porPrioridad'] = $model->contarPorPrioridad();
-        $counts['tendencia'] = $model->tendenciaUltimosDias(7);
 
         $this->success($counts);
     }
@@ -334,6 +490,58 @@ final class TicketController extends BaseController
         return 4;
     }
 
+    /**
+     * Sección "Estadísticas" del panel admin: distribución, tendencia,
+     * resumen con comparación contra el período anterior y rendimiento
+     * por agente, todo acotado por `desde`/`hasta` (query string, 'Y-m-d'
+     * -- default: últimos 30 días). A diferencia de `dashboard()` (foto
+     * del momento), acá todo es sobre un rango elegible.
+     */
+    public function estadisticas(Request $request): void
+    {
+        $this->requireAuth(['ADMIN']);
+        $model = new TicketModel();
+
+        $hoy = new \DateTimeImmutable('today');
+        $hasta = $this->parsearFecha($request->query('hasta')) ?? $hoy;
+        $desde = $this->parsearFecha($request->query('desde')) ?? $hasta->modify('-29 days');
+
+        if ($desde > $hasta) {
+            $this->fail('"desde" no puede ser posterior a "hasta".', 422);
+        }
+
+        $desdeStr = $desde->format('Y-m-d 00:00:00');
+        $hastaStr = $hasta->format('Y-m-d 23:59:59');
+
+        // Período anterior de igual longitud, inmediatamente antes de $desde.
+        $dias = $hasta->diff($desde)->days + 1;
+        $desdeAnteriorStr = $desde->modify("-{$dias} days")->format('Y-m-d 00:00:00');
+        $hastaAnteriorStr = $desde->modify('-1 day')->format('Y-m-d 23:59:59');
+
+        $this->success([
+            'desde' => $desde->format('Y-m-d'),
+            'hasta' => $hasta->format('Y-m-d'),
+            'resumen' => $model->resumenPeriodo($desdeStr, $hastaStr),
+            'resumenAnterior' => $model->resumenPeriodo($desdeAnteriorStr, $hastaAnteriorStr),
+            'porEstado' => $model->contarPorEstado($desdeStr, $hastaStr),
+            'porPrioridad' => $model->contarPorPrioridad($desdeStr, $hastaStr),
+            'tendencia' => $model->tendenciaRango($desdeStr, $hastaStr),
+            'rendimientoAgentes' => $model->rendimientoPorAgente($desdeStr, $hastaStr),
+        ]);
+    }
+
+    /** 'Y-m-d' -> DateTimeImmutable, o null si viene vacío/inválido (para poder usar un default). */
+    private function parsearFecha(mixed $valor): ?\DateTimeImmutable
+    {
+        if (!is_string($valor) || $valor === '') {
+            return null;
+        }
+
+        $fecha = \DateTimeImmutable::createFromFormat('!Y-m-d', $valor);
+
+        return $fecha !== false ? $fecha : null;
+    }
+
     public function comentarios(Request $request, array $params): void
     {
         $usuario = $this->requireAuth();
@@ -351,7 +559,7 @@ final class TicketController extends BaseController
     {
         $usuario = $this->requireAuth();
         $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertEditable($ticket);
 
         $data = $request->all();
         $errores = array_filter([
@@ -362,7 +570,12 @@ final class TicketController extends BaseController
             $this->fail(implode(' ', $errores), 422);
         }
 
-        $autorTipo = $usuario['rol'] === 'ADMIN' ? 'ADMIN' : 'CLIENTE';
+        // 'CLIENTE' solo si de verdad lo es -- ADMIN y AGENTE quedan
+        // como 'ADMIN' en autor_tipo (columna sin valor propio para
+        // AGENTE, ver ticket_eventos/ticket_comentarios -- el nombre ya
+        // identifica a la persona, y `assertNivelPermitido` es lo que
+        // controla el acceso, no esta etiqueta).
+        $autorTipo = $usuario['rol'] === 'CLIENTE' ? 'CLIENTE' : 'ADMIN';
         $comentario = (string) $request->input('comentario');
         (new TicketComentarioModel())->create(
             (int) $params['id'],
@@ -413,7 +626,7 @@ final class TicketController extends BaseController
     {
         $usuario = $this->requireAuth();
         $ticket = $this->requireTicketAccess($usuario, (int) $params['id']);
-        $this->assertNotResuelto($ticket);
+        $this->assertEditable($ticket);
 
         $archivo = $request->file('archivo');
         if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
@@ -438,7 +651,7 @@ final class TicketController extends BaseController
             $this->fail('No se pudo guardar el archivo.', 500);
         }
 
-        $autorTipo = $usuario['rol'] === 'ADMIN' ? 'ADMIN' : 'CLIENTE';
+        $autorTipo = $usuario['rol'] === 'CLIENTE' ? 'CLIENTE' : 'ADMIN';
         $id = (new TicketAdjuntoModel())->create(
             (int) $params['id'],
             $autorTipo,
@@ -505,7 +718,7 @@ final class TicketController extends BaseController
         return $ticket;
     }
 
-    /** Un cliente solo puede ver/comentar/adjuntar en sus propios tickets; el admin, en cualquiera. */
+    /** Un cliente solo puede ver/comentar/adjuntar en sus propios tickets; el admin, en cualquiera; el agente, solo en los de su nivel. */
     private function requireTicketAccess(array $usuario, int $ticketId): array
     {
         $ticket = $this->findTicketOrFail(new TicketModel(), $ticketId);
@@ -513,15 +726,34 @@ final class TicketController extends BaseController
         if ($usuario['rol'] === 'CLIENTE' && (int) $ticket['cliente_id'] !== (int) $usuario['id']) {
             $this->fail('No tenés acceso a este ticket.', 403);
         }
+        $this->assertNivelPermitido($usuario, $ticket);
 
         return $ticket;
     }
 
-    /** Un ticket RESUELTO queda bloqueado por completo -- ni comentarios, ni adjuntos, ni reasignar/reabrir. */
-    private function assertNotResuelto(array $ticket): void
+    /**
+     * Un agente solo puede ver/gestionar tickets de su propio nivel --
+     * pedir uno de otro nivel (aunque el link nunca se muestre en la UI,
+     * ej. por URL/API directa) corta acá con 403. No aplica a ADMIN
+     * (ve todo) ni a CLIENTE (ya filtrado en `requireTicketAccess`).
+     */
+    private function assertNivelPermitido(array $usuario, array $ticket): void
     {
-        if ($ticket['estado'] === 'RESUELTO') {
-            $this->fail('Este ticket está resuelto y bloqueado.', 409);
+        if ($usuario['rol'] === 'AGENTE' && (int) $ticket['nivel'] !== (int) $usuario['nivel']) {
+            $this->fail('No tenés acceso a tickets de otro nivel.', 403);
+        }
+    }
+
+    /**
+     * Un ticket RESUELTO o CERRADO queda bloqueado -- ni comentarios, ni
+     * adjuntos, ni reasignar/escalar/pausar. La única acción válida
+     * sobre un RESUELTO es `cerrar()`, que no pasa por acá (tiene su
+     * propia validación de estado, es la excepción a esta regla).
+     */
+    private function assertEditable(array $ticket): void
+    {
+        if (in_array($ticket['estado'], ['RESUELTO', 'CERRADO', 'CANCELADO'], true)) {
+            $this->fail('Este ticket está resuelto, cerrado o cancelado y bloqueado.', 409);
         }
     }
 
@@ -552,9 +784,12 @@ final class TicketController extends BaseController
             'asignadoANombre' => $t['asignado_a_nombre'],
             'asignadoAFotoUrl' => $t['asignado_a_foto'] ? "/assets/uploads/avatars/{$t['asignado_a_foto']}" : null,
             'asignadoATitulo' => $t['asignado_a_titulo'],
+            'agenteOriginalId' => $t['agente_original_id'] !== null ? (int) $t['agente_original_id'] : null,
+            'agenteOriginalNombre' => $t['agente_original_nombre'],
             'solucion' => $t['solucion'],
             'fechaCreacion' => $t['created_at'],
             'fechaResuelto' => $t['resuelto_at'],
+            'fechaCerrado' => $t['cerrado_at'],
             'slaVencimiento' => $sla['vencimiento'],
             'slaEstado' => $sla['estado'],
         ];

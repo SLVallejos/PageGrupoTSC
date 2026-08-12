@@ -98,14 +98,46 @@
   letter-spacing: 0.03em;
 }
 
-.badge--estado-new { color: #4338ca; background-color: #e0e7ff; }
+.badge--estado-abierto { color: #4338ca; background-color: #e0e7ff; }
+.badge--estado-pendiente_asignacion { color: #7c3aed; background-color: #ede9fe; }
 .badge--estado-en_proceso { color: #b45309; background-color: #fef3c7; }
+.badge--estado-escalado { color: #c2410c; background-color: #ffedd5; }
+.badge--estado-en_espera { color: #0891b2; background-color: #cffafe; }
 .badge--estado-resuelto { color: #065f46; background-color: #d1fae5; }
+.badge--estado-cerrado { color: #475569; background-color: #f1f5f9; }
+.badge--estado-cancelado { color: #9f1239; background-color: #fce7f3; }
 
 .badge--prioridad-baja { color: #64748b; background-color: #f1f5f9; }
 .badge--prioridad-media { color: #1d4ed8; background-color: #dbeafe; }
 .badge--prioridad-alta { color: #b45309; background-color: #fef3c7; }
 .badge--prioridad-urgente { color: #b91c1c; background-color: #fee2e2; }
+
+/* Checklist en vivo de la política de contraseñas (Validator::password() en el backend). */
+.password-hints {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  font-size: var(--text-xs);
+}
+
+.password-hints li {
+  color: var(--color-text-muted);
+}
+
+.password-hints li::before {
+  content: '○ ';
+}
+
+.password-hints li.is-valida {
+  color: #059669;
+}
+
+.password-hints li.is-valida::before {
+  content: '✓ ';
+}
 
 /* ====================================
    LISTA DE TICKETS
@@ -351,6 +383,43 @@
 .badge--nivel {
   color: #64748b;
   background-color: #f1f5f9;
+}
+
+/* Chips de filtro de fecha (Estadísticas) -- pastilla clickeable, activa = fondo azul. */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-full);
+  background-color: #ffffff;
+  padding: var(--space-1-5) var(--space-3-5);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.chip:hover {
+  border-color: var(--color-accent);
+}
+
+.chip.is-active {
+  background-color: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
+  color: #ffffff;
+}
+
+/* Variación vs. período anterior, debajo del valor de un KPI en Estadísticas. */
+.kpi-variacion {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 11px;
+  color: var(--color-muted);
 }
 
 .reset-manual-form {
@@ -1022,12 +1091,24 @@ body[data-page='panel-cliente'] .panel-main {
   align-items: center;
   text-align: center;
   gap: var(--space-3);
+  transition: box-shadow 0.15s ease;
+}
+
+.chart-card:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .chart-card__title {
   font-size: var(--text-sm);
   font-weight: var(--fw-semibold);
   color: var(--color-text);
+}
+
+.chart-donut__subtitle {
+  font-size: 9px;
+  fill: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .chart-donut__total {
@@ -1050,6 +1131,12 @@ body[data-page='panel-cliente'] .panel-main {
   width: 100%;
   font-size: var(--text-xs);
   color: var(--color-text-soft);
+}
+
+.chart-legend--grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-1-5) var(--space-3);
 }
 
 .chart-legend--inline {

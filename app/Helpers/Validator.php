@@ -40,6 +40,29 @@ final class Validator
     }
 
     /**
+     * Política de contraseñas (para cualquier cuenta -- cliente, agente o
+     * admin): mínimo 8 caracteres, al menos una mayúscula y al menos un
+     * carácter especial. Se usa siempre que se fija una contraseña a
+     * mano (alta de cuenta o reseteo) -- no hay generación aleatoria en
+     * ningún lado, así que esta es la única puerta de entrada.
+     * @param array<string, mixed> $data
+     */
+    public static function password(array $data, string $field): ?string
+    {
+        $value = (string) ($data[$field] ?? '');
+        if (mb_strlen($value) < 8) {
+            return "El campo \"{$field}\" debe tener al menos 8 caracteres.";
+        }
+        if (!preg_match('/[A-Z]/', $value)) {
+            return "El campo \"{$field}\" debe tener al menos una letra mayúscula.";
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $value)) {
+            return "El campo \"{$field}\" debe tener al menos un carácter especial.";
+        }
+        return null;
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @param array<int, string> $permitidos
      */

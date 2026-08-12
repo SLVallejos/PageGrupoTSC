@@ -88,12 +88,17 @@ $router->get('/api/tickets', [TicketController::class, 'index']);
 $router->post('/api/tickets', [TicketController::class, 'store']);
 $router->get('/api/tickets/resumen-nuevos', [TicketController::class, 'resumenNuevos']);
 $router->get('/api/tickets/dashboard', [TicketController::class, 'dashboard']);
+$router->get('/api/tickets/estadisticas', [TicketController::class, 'estadisticas']);
 $router->patch('/api/tickets/{id}/asignar', [TicketController::class, 'asignar']);
 $router->patch('/api/tickets/{id}/liberar', [TicketController::class, 'liberar']);
-$router->patch('/api/tickets/{id}/estado', [TicketController::class, 'estado']);
 $router->patch('/api/tickets/{id}/prioridad', [TicketController::class, 'prioridad']);
 $router->patch('/api/tickets/{id}/escalar', [TicketController::class, 'escalar']);
 $router->patch('/api/tickets/{id}/resolver', [TicketController::class, 'resolver']);
+$router->patch('/api/tickets/{id}/pausar', [TicketController::class, 'pausar']);
+$router->patch('/api/tickets/{id}/reanudar', [TicketController::class, 'reanudar']);
+$router->patch('/api/tickets/{id}/cerrar', [TicketController::class, 'cerrar']);
+$router->patch('/api/tickets/{id}/cancelar', [TicketController::class, 'cancelar']);
+$router->delete('/api/tickets/{id}', [TicketController::class, 'eliminar']);
 $router->get('/api/tickets/{id}/comentarios', [TicketController::class, 'comentarios']);
 $router->post('/api/tickets/{id}/comentarios', [TicketController::class, 'comentar']);
 $router->get('/api/tickets/{id}/adjuntos', [TicketController::class, 'adjuntos']);
@@ -108,6 +113,7 @@ $router->patch('/api/usuarios/{id}/reset-password', [UsuarioController::class, '
 
 $router->get('/api/administradores', [AdministradorController::class, 'index']);
 $router->post('/api/administradores', [AdministradorController::class, 'store']);
+$router->patch('/api/administradores/me', [AdministradorController::class, 'actualizarPerfil']);
 $router->patch('/api/administradores/{id}/estado', [AdministradorController::class, 'estado']);
 $router->patch('/api/administradores/{id}/reset-password', [AdministradorController::class, 'resetPassword']);
 $router->post('/api/administradores/{id}/foto', [AdministradorController::class, 'subirFoto']);

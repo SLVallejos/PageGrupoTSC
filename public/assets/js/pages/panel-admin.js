@@ -1,4 +1,4 @@
-import { qs } from '../utils.js';
+import { qs, qsa } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout } from '../modules/api-client.js';
 import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
 
@@ -9,8 +9,16 @@ import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/pa
  * activar/desactivar, resetear contraseña, foto de perfil).
  */
 
-const ESTADOS = { NEW: 'Nuevo', EN_PROCESO: 'En proceso', RESUELTO: 'Resuelto' };
-const ESTADOS_EDITABLES = ['NEW', 'EN_PROCESO']; // RESUELTO solo por el flujo de "Proponer Solución"
+const ESTADOS = {
+  ABIERTO: 'Abierto',
+  PENDIENTE_ASIGNACION: 'Pendiente de asignación',
+  EN_PROCESO: 'En proceso',
+  ESCALADO: 'Escalado',
+  EN_ESPERA: 'En espera',
+  RESUELTO: 'Resuelto',
+  CERRADO: 'Cerrado',
+  CANCELADO: 'Cancelado',
+};
 const PRIORIDADES = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', URGENTE: 'Urgente' };
 const SLA_LABELS = { OK: 'SLA OK', PROXIMO: 'SLA próximo', VENCIDO: 'SLA vencido', CUMPLIDO: 'SLA cumplido', FUERA_PLAZO: 'Fuera de plazo' };
 const EVENTO_LABELS = {
@@ -22,9 +30,45 @@ const EVENTO_LABELS = {
   ESCALADO: 'Escalado',
   COMENTARIO: 'Comentario',
   RESUELTO: 'Ticket resuelto',
+  PAUSADO: 'Puesto en espera',
+  REANUDADO: 'Reanudado',
+  DEVUELTO: 'Devuelto al agente original',
+  CERRADO: 'Ticket cerrado',
+  CANCELADO: 'Ticket cancelado',
 };
 const PAGE_SIZE = 10;
 const ADJUNTOS_ACEPTADOS = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
+
+/**
+ * Política de contraseñas (mismas reglas que `Validator::password()` en
+ * el backend) -- acá solo es feedback visual en vivo mientras se
+ * escribe, la validación real es siempre del lado del servidor.
+ */
+const PASSWORD_REQS = [
+  { label: 'Al menos 8 caracteres', test: (v) => v.length >= 8 },
+  { label: 'Una letra mayúscula', test: (v) => /[A-Z]/.test(v) },
+  { label: 'Un carácter especial', test: (v) => /[^A-Za-z0-9]/.test(v) },
+];
+
+function passwordHintsItemsHtml() {
+  return PASSWORD_REQS.map((r, i) => `<li data-req="${i}">${escapeHtml(r.label)}</li>`).join('');
+}
+
+/** Actualiza qué requisitos aparecen cumplidos (✓) en el checklist de al lado de un campo de contraseña. */
+function actualizarPasswordHints(hintsEl, value) {
+  PASSWORD_REQS.forEach((r, i) => {
+    hintsEl.querySelector(`[data-req="${i}"]`)?.classList.toggle('is-valida', r.test(value));
+  });
+}
+
+/** Engancha el checklist en vivo a un form estático (alta de cliente/agente) -- los de "reset-manual" dinámicos usan delegación, ver initGestionSection()/initAgentesSection(). */
+function initPasswordHints(form) {
+  const input = qs('input[type="password"]', form);
+  const hintsEl = qs('[data-role="password-hints"]', form);
+  if (!input || !hintsEl) return;
+  hintsEl.innerHTML = passwordHintsItemsHtml();
+  input.addEventListener('input', () => actualizarPasswordHints(hintsEl, input.value));
+}
 
 let ticketsPage = 1;
 let ticketsTotalPages = 1;
@@ -32,6 +76,8 @@ let nivelActual = null; // null = "Todos" (el arranque ahora es la sección Inic
 let sinAsignarActual = false;
 let qFilterActual = '';
 let usuarioActual = null;
+let estadisticasDesde = '';
+let estadisticasHasta = '';
 
 /** Escapa texto para insertarlo de forma segura dentro de HTML (evita XSS con datos de tickets/comentarios). */
 function escapeHtml(value) {
@@ -71,7 +117,33 @@ function avatarHtml(fotoUrl, nombre, tamano = 'sm') {
    TICKETS
 ==================================== */
 
+/**
+ * Los botones dependen del estado real del ticket -- ya no hay un
+ * `<select>` libre de estado, cada transición es una acción con sus
+ * propias reglas (ver TicketController::assertEditable() y los checks
+ * de estado en asignar/liberar/pausar/reanudar/escalar/resolver/
+ * cerrar).
+ */
 function ticketControlesHtml(t) {
+  if (t.estado === 'CANCELADO') {
+    return `
+      <div class="solucion-box">
+        <strong>Ticket cancelado</strong>
+        <p>El motivo queda registrado en el Historial, más abajo.</p>
+      </div>
+    `;
+  }
+
+  if (t.estado === 'CERRADO') {
+    return `
+      <div class="solucion-box">
+        <strong>Solución propuesta</strong>
+        <p>${escapeHtml(t.solucion)}</p>
+        <span class="ticket-card__meta">Resuelto el ${formatFecha(t.fechaResuelto)} · Cerrado el ${formatFecha(t.fechaCerrado)}</span>
+      </div>
+    `;
+  }
+
   if (t.estado === 'RESUELTO') {
     return `
       <div class="solucion-box">
@@ -79,17 +151,19 @@ function ticketControlesHtml(t) {
         <p>${escapeHtml(t.solucion)}</p>
         <span class="ticket-card__meta">Resuelto el ${formatFecha(t.fechaResuelto)}</span>
       </div>
+      <div class="ticket-card__controls">
+        <button type="button" class="btn btn-primary btn--sm" data-action="cerrar-ticket">Cerrar ticket</button>
+      </div>
     `;
   }
 
+  const sinDueno = t.asignadoAId === null;
+  const enProceso = t.estado === 'EN_PROCESO';
+  const enEspera = t.estado === 'EN_ESPERA';
+  const puedeTrabajarlo = enProceso || enEspera;
+
   return `
     <div class="ticket-card__controls">
-      <div class="field">
-        <label class="field__label field__label--form">Estado</label>
-        <select class="field__input" data-action="estado">
-          ${ESTADOS_EDITABLES.map((v) => `<option value="${v}" ${v === t.estado ? 'selected' : ''}>${ESTADOS[v]}</option>`).join('')}
-        </select>
-      </div>
       <div class="field">
         <label class="field__label field__label--form">Prioridad</label>
         <select class="field__input" data-action="prioridad">
@@ -97,28 +171,41 @@ function ticketControlesHtml(t) {
         </select>
       </div>
       ${
-        t.asignadoAId === usuarioActual.id
-          ? '<button type="button" class="btn btn-secondary btn--sm" data-action="liberar">Liberar ticket</button>'
-          : '<button type="button" class="btn btn-secondary btn--sm" data-action="adjudicar">Adjudicarme ticket</button>'
+        sinDueno
+          ? '<button type="button" class="btn btn-secondary btn--sm" data-action="adjudicar">Adjudicarme ticket</button>'
+          : t.asignadoAId === usuarioActual.id
+            ? '<button type="button" class="btn btn-secondary btn--sm" data-action="liberar">Liberar ticket</button>'
+            : '<button type="button" class="btn btn-secondary btn--sm" data-action="adjudicar">Adjudicarme ticket</button>'
       }
+      ${enProceso ? '<button type="button" class="btn btn-secondary btn--sm" data-action="pausar">Marcar en espera</button>' : ''}
+      ${enEspera ? '<button type="button" class="btn btn-secondary btn--sm" data-action="reanudar">Reanudar</button>' : ''}
       ${
-        t.nivel < 3
+        puedeTrabajarlo && t.nivel < 3
           ? `<button type="button" class="btn btn-secondary btn--sm" data-action="escalar-toggle">Escalar a Nivel ${t.nivel + 1}</button>`
           : ''
       }
-      <button type="button" class="btn btn-secondary btn--sm" data-action="resolver-toggle">Proponer Solución</button>
+      ${puedeTrabajarlo ? '<button type="button" class="btn btn-secondary btn--sm" data-action="resolver-toggle">Proponer Solución</button>' : ''}
+      <button type="button" class="btn btn-secondary btn--sm" data-action="cancelar-toggle">Cancelar ticket</button>
     </div>
     ${
-      t.nivel < 3
+      puedeTrabajarlo && t.nivel < 3
         ? `<div class="resolver-form" data-role="escalar-form" hidden>
              <input type="text" class="field__input" placeholder="Motivo del escalamiento…" required maxlength="500" data-role="escalar-motivo" />
              <button type="button" class="btn btn-primary btn--sm" data-action="escalar-confirmar">Confirmar escalamiento</button>
            </div>`
         : ''
     }
-    <div class="resolver-form" data-role="resolver-form" hidden>
-      <textarea class="field__input" placeholder="Describí la solución aplicada…" required maxlength="4000"></textarea>
-      <button type="button" class="btn btn-primary btn--sm" data-action="resolver-confirmar">Confirmar resolución</button>
+    ${
+      puedeTrabajarlo
+        ? `<div class="resolver-form" data-role="resolver-form" hidden>
+             <textarea class="field__input" placeholder="Describí la solución aplicada…" required maxlength="4000"></textarea>
+             <button type="button" class="btn btn-primary btn--sm" data-action="resolver-confirmar">Confirmar resolución</button>
+           </div>`
+        : ''
+    }
+    <div class="resolver-form" data-role="cancelar-form" hidden>
+      <input type="text" class="field__input" placeholder="Motivo de la cancelación…" required maxlength="500" data-role="cancelar-motivo" />
+      <button type="button" class="btn btn-primary btn--sm" data-action="cancelar-confirmar">Confirmar cancelación</button>
     </div>
   `;
 }
@@ -130,7 +217,11 @@ function ticketCardHtml(t) {
   const asignado = t.asignadoANombre
     ? `${avatarHtml(t.asignadoAFotoUrl, t.asignadoANombre, 'sm')} ${escapeHtml(t.asignadoANombre)}${t.asignadoATitulo ? ` · ${escapeHtml(t.asignadoATitulo)}` : ''}`
     : 'Sin asignar';
-  const resuelto = t.estado === 'RESUELTO';
+  // RESUELTO, CERRADO y CANCELADO bloquean comentarios/adjuntos por
+  // igual (ver TicketController::assertEditable()) -- el nombre queda
+  // "resuelto" por el estilo CSS ya existente (`ticket-card--resuelto`),
+  // que también aplica visualmente a cerrado/cancelado.
+  const resuelto = t.estado === 'RESUELTO' || t.estado === 'CERRADO' || t.estado === 'CANCELADO';
 
   return `
     <article class="glass-card ticket-card${resuelto ? ' ticket-card--resuelto' : ''}" data-id="${t.id}" data-nivel="${t.nivel}">
@@ -320,6 +411,9 @@ function detalleEventoTexto(e) {
   if (e.tipo === 'PRIORIDAD') {
     return `Nueva prioridad: ${PRIORIDADES[e.detalle] || e.detalle}`;
   }
+  if (e.tipo === 'CANCELADO') {
+    return `Motivo: ${escapeHtml(e.motivo || '')}`;
+  }
   return escapeHtml(e.detalle || '');
 }
 
@@ -425,6 +519,11 @@ const DASHBOARD_STAT_META = {
     bg: '#fef3c7',
     icon: '<polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   },
+  cancelados: {
+    color: '#64748b',
+    bg: '#f1f5f9',
+    icon: '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  },
 };
 
 /**
@@ -506,29 +605,37 @@ function actividadRecienteHtml(e) {
  */
 function donutChartSvg(titulo, segmentos) {
   const total = segmentos.reduce((suma, s) => suma + s.valor, 0);
-  const size = 140;
+  const size = 150;
   const cx = size / 2;
   const cy = size / 2;
-  const r = 48;
-  const strokeWidth = 20;
+  const r = 52;
+  const strokeWidth = 18;
   const circunferencia = 2 * Math.PI * r;
+  const visibles = segmentos.filter((s) => s.valor > 0);
+  // Huequito prolijo entre segmentos (estilo Linear/Notion) -- con
+  // stroke-linecap redondeado, un dasharray a lo justo se ve como un
+  // anillo continuo sin cortes; restarle unos px de "hueco" a cada
+  // segmento (sin tocar el acumulado, que sigue proporcional al valor
+  // real) es lo que separa uno de otro visualmente.
+  const hueco = visibles.length > 1 ? 3 : 0;
 
   let arcos;
   if (total === 0) {
-    arcos = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="${strokeWidth}" />`;
+    arcos = '';
   } else {
     let acumulado = 0;
-    arcos = segmentos
-      .filter((s) => s.valor > 0)
+    arcos = visibles
       .map((s) => {
-        const largo = (s.valor / total) * circunferencia;
-        const circulo = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${strokeWidth}" stroke-dasharray="${largo} ${circunferencia - largo}" stroke-dashoffset="${-acumulado}" />`;
-        acumulado += largo;
+        const largoReal = (s.valor / total) * circunferencia;
+        const largoVisible = Math.max(largoReal - hueco, 1);
+        const circulo = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-dasharray="${largoVisible} ${circunferencia - largoVisible}" stroke-dashoffset="${-acumulado}"><title>${escapeHtml(s.label)}: ${s.valor}</title></circle>`;
+        acumulado += largoReal;
         return circulo;
       })
       .join('');
   }
 
+  const leyendaGrid = segmentos.length > 5 ? ' chart-legend--grid' : '';
   const leyenda = segmentos
     .map(
       (s) => `
@@ -542,11 +649,13 @@ function donutChartSvg(titulo, segmentos) {
   return `
     <div class="glass-card chart-card">
       <h3 class="chart-card__title">${escapeHtml(titulo)}</h3>
-      <svg viewBox="0 0 ${size} ${size}" width="150" height="150" role="img" aria-label="${escapeHtml(titulo)}">
+      <svg viewBox="0 0 ${size} ${size}" width="160" height="160" role="img" aria-label="${escapeHtml(titulo)}">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f1f5f9" stroke-width="${strokeWidth}" />
         <g transform="rotate(-90 ${cx} ${cy})">${arcos}</g>
-        <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" class="chart-donut__total">${total === 0 ? 'Sin datos' : total}</text>
+        <text x="${cx}" y="${total === 0 ? cy : cy - 7}" text-anchor="middle" dominant-baseline="middle" class="chart-donut__total">${total === 0 ? 'Sin datos' : total}</text>
+        ${total === 0 ? '' : `<text x="${cx}" y="${cy + 13}" text-anchor="middle" dominant-baseline="middle" class="chart-donut__subtitle">tickets</text>`}
       </svg>
-      <ul class="chart-legend">${leyenda}</ul>
+      <ul class="chart-legend${leyendaGrid}">${leyenda}</ul>
     </div>
   `;
 }
@@ -554,24 +663,41 @@ function donutChartSvg(titulo, segmentos) {
 /** Barras agrupadas (creados/resueltos) por día, SVG a mano -- alto proporcional al máximo de la serie, con piso de 2px para que un valor en 0 siga siendo visible como línea. */
 function barChartSvg(titulo, dias) {
   const width = 320;
-  const height = 160;
+  const height = 168;
   const padding = 24;
-  const baseline = height - padding;
+  const baseline = height - padding - 8;
   const maxBarHeight = baseline - 10;
   const max = Math.max(1, ...dias.map((d) => Math.max(d.creados, d.resueltos)));
   const groupWidth = (width - padding * 2) / dias.length;
   const barWidth = Math.min(14, groupWidth / 3);
+  // Con rangos largos (30+ días) una etiqueta por barra se pisa entre sí
+  // -- se eligen hasta 7 índices parejos (primero y último siempre
+  // incluidos) en vez de "cada N + el último a la fuerza", que en
+  // rangos que no eran múltiplo exacto del paso dejaba dos etiquetas
+  // pegadas justo al final.
+  const cantidadEtiquetas = Math.min(7, dias.length);
+  const indicesConEtiqueta = new Set();
+  for (let k = 0; k < cantidadEtiquetas; k++) {
+    indicesConEtiqueta.add(Math.round((k / Math.max(cantidadEtiquetas - 1, 1)) * (dias.length - 1)));
+  }
 
   const barras = dias
     .map((d, i) => {
       const groupX = padding + i * groupWidth + groupWidth / 2;
       const alturaCreados = d.creados === 0 ? 2 : (d.creados / max) * maxBarHeight;
       const alturaResueltos = d.resueltos === 0 ? 2 : (d.resueltos / max) * maxBarHeight;
-      const fechaLabel = new Date(`${d.fecha}T00:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+      const fechaDate = new Date(`${d.fecha}T00:00:00`);
+      const fechaLabel = indicesConEtiqueta.has(i)
+        ? fechaDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })
+        : '';
+      const fechaCompleta = fechaDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       return `
-        <rect x="${groupX - barWidth - 2}" y="${baseline - alturaCreados}" width="${barWidth}" height="${alturaCreados}" fill="#0284c7" rx="2" />
-        <rect x="${groupX + 2}" y="${baseline - alturaResueltos}" width="${barWidth}" height="${alturaResueltos}" fill="#065f46" rx="2" />
-        <text x="${groupX}" y="${height - 6}" text-anchor="middle" class="chart-bar__label">${fechaLabel}</text>
+        <g>
+          <title>${fechaCompleta} — Creados: ${d.creados}, Resueltos: ${d.resueltos}</title>
+          <rect x="${groupX - barWidth - 2}" y="${baseline - alturaCreados}" width="${barWidth}" height="${alturaCreados}" fill="#0284c7" rx="2" />
+          <rect x="${groupX + 2}" y="${baseline - alturaResueltos}" width="${barWidth}" height="${alturaResueltos}" fill="#065f46" rx="2" />
+        </g>
+        ${fechaLabel ? `<text x="${groupX}" y="${height - 8}" text-anchor="middle" class="chart-bar__label">${fechaLabel}</text>` : ''}
       `;
     })
     .join('');
@@ -583,7 +709,7 @@ function barChartSvg(titulo, dias) {
         <li><span class="chart-legend__dot" style="background-color:#0284c7"></span>Creados</li>
         <li><span class="chart-legend__dot" style="background-color:#065f46"></span>Resueltos</li>
       </ul>
-      <svg viewBox="0 0 ${width} ${height}" width="100%" height="160" role="img" aria-label="${escapeHtml(titulo)}">
+      <svg viewBox="0 0 ${width} ${height}" width="100%" height="168" role="img" aria-label="${escapeHtml(titulo)}">
         <line x1="${padding}" y1="${baseline}" x2="${width - padding}" y2="${baseline}" stroke="#e2e8f0" stroke-width="1" />
         ${barras}
       </svg>
@@ -608,6 +734,7 @@ async function cargarDashboard() {
     dashboardStatHtml('resueltosHoy', d.resueltosHoy, 'Resueltos hoy', false),
     dashboardStatHtml('misTickets', d.misTickets, 'Mis tickets', true),
     dashboardStatHtml('slaEnRiesgo', d.slaEnRiesgo, 'SLA en riesgo', false),
+    dashboardStatHtml('cancelados', d.cancelados, 'Cancelados', false),
   ].join('');
 
   qs('[data-stat="enProgreso"]').addEventListener('click', () => {
@@ -630,19 +757,105 @@ async function cargarDashboard() {
 }
 
 /** Sección Estadísticas -- mismo endpoint que el dashboard (ya trae porEstado/porPrioridad/tendencia), pero se pinta en su propia sección del sidebar, no mezclado con Inicio. */
+/** Colores/íconos de los KPI de Estadísticas -- reusa los de DASHBOARD_STAT_META donde el significado coincide (tiempoRespuesta = mismo reloj que "En progreso"), agrega los que faltan. */
+const KPI_META = {
+  total: DASHBOARD_STAT_META.abiertos,
+  resueltos: DASHBOARD_STAT_META.resueltosHoy,
+  tasaResolucion: {
+    color: '#7c3aed',
+    bg: '#ede9fe',
+    icon: '<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  },
+  tiempoRespuesta: DASHBOARD_STAT_META.enProgreso,
+  tiempoResolucion: {
+    color: '#c2410c',
+    bg: '#ffedd5',
+    icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  },
+};
+
+function kpiTileHtml(key, valor, etiqueta, variacion) {
+  const meta = KPI_META[key];
+  return `
+    <div class="glass-card dashboard-stat" style="--stat-color:${meta.color}; --stat-bg:${meta.bg};">
+      <div class="dashboard-stat__icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${meta.icon}</svg>
+      </div>
+      <div class="dashboard-stat__body">
+        <div class="dashboard-stat__value">${valor}</div>
+        <div class="dashboard-stat__label">${etiqueta}</div>
+        ${variacion}
+      </div>
+    </div>
+  `;
+}
+
+/** Minutos -> texto legible ("45 min" / "3.2 h" / "1.5 días"); null cuando no hay datos para promediar (ver TicketModel::resumenPeriodo). */
+function formatDuracion(minutos) {
+  if (minutos === null || minutos === undefined) return '—';
+  if (minutos < 60) return `${Math.round(minutos)} min`;
+  const horas = minutos / 60;
+  if (horas < 24) return `${horas.toFixed(1)} h`;
+  return `${(horas / 24).toFixed(1)} días`;
+}
+
+/** Flecha + % contra el período anterior -- texto neutro (sin verde/rojo de "bueno/malo", eso depende del KPI y no vale la pena adivinarlo). */
+function variacionHtml(actual, anterior) {
+  const a = actual ?? 0;
+  const b = anterior ?? 0;
+  if (b === 0) {
+    return '<span class="kpi-variacion">Sin datos en el período anterior</span>';
+  }
+  const pct = ((a - b) / b) * 100;
+  const flecha = pct >= 0 ? '▲' : '▼';
+  return `<span class="kpi-variacion">${flecha} ${Math.abs(pct).toFixed(0)}% vs. período anterior</span>`;
+}
+
+function agenteRendimientoHtml(a) {
+  const apellido = a.apellido ? ` ${escapeHtml(a.apellido)}` : '';
+  const tasa = a.asignados > 0 ? Math.round((a.resueltos / a.asignados) * 100) : 0;
+
+  return `
+    <div class="glass-card usuario-row">
+      ${avatarHtml(a.fotoUrl, a.nombre, 'lg')}
+      <div class="usuario-row__info">
+        <div class="usuario-row__nombre">${escapeHtml(a.nombre)}${apellido}</div>
+        <div class="usuario-row__email">${a.asignados} asignados · ${a.resueltos} resueltos (${tasa}%) · ${formatDuracion(a.resolucionMinProm)} promedio de resolución</div>
+      </div>
+    </div>
+  `;
+}
+
 async function cargarEstadisticas() {
-  const res = await apiFetch('/api/tickets/dashboard');
+  const params = new URLSearchParams({ desde: estadisticasDesde, hasta: estadisticasHasta });
+  const res = await apiFetch(`/api/tickets/estadisticas?${params.toString()}`);
   if (!res.ok) {
     mostrarAlerta('estadisticas-alert', res.message || 'No se pudieron cargar las estadísticas.');
     return;
   }
 
   const d = res.data;
+  const r = d.resumen;
+  const ra = d.resumenAnterior;
+
+  qs('#estadisticas-kpis').innerHTML = [
+    kpiTileHtml('total', r.total, 'Tickets creados', variacionHtml(r.total, ra.total)),
+    kpiTileHtml('resueltos', r.resueltos, 'Resueltos', variacionHtml(r.resueltos, ra.resueltos)),
+    kpiTileHtml('tasaResolucion', `${r.tasaResolucion}%`, 'Tasa de resolución', variacionHtml(r.tasaResolucion, ra.tasaResolucion)),
+    kpiTileHtml('tiempoRespuesta', formatDuracion(r.tiempoRespuestaMinProm), 'Tiempo de 1ª respuesta', variacionHtml(r.tiempoRespuestaMinProm, ra.tiempoRespuestaMinProm)),
+    kpiTileHtml('tiempoResolucion', formatDuracion(r.tiempoResolucionMinProm), 'Tiempo de resolución', variacionHtml(r.tiempoResolucionMinProm, ra.tiempoResolucionMinProm)),
+  ].join('');
+
   qs('#dashboard-charts').innerHTML = [
     donutChartSvg('Tickets por estado', [
-      { label: 'Nuevo', valor: d.porEstado.NEW, color: '#4338ca' },
+      { label: 'Abierto', valor: d.porEstado.ABIERTO, color: '#4338ca' },
+      { label: 'Pendiente asig.', valor: d.porEstado.PENDIENTE_ASIGNACION, color: '#7c3aed' },
       { label: 'En proceso', valor: d.porEstado.EN_PROCESO, color: '#b45309' },
+      { label: 'Escalado', valor: d.porEstado.ESCALADO, color: '#c2410c' },
+      { label: 'En espera', valor: d.porEstado.EN_ESPERA, color: '#0891b2' },
       { label: 'Resuelto', valor: d.porEstado.RESUELTO, color: '#065f46' },
+      { label: 'Cerrado', valor: d.porEstado.CERRADO, color: '#475569' },
+      { label: 'Cancelado', valor: d.porEstado.CANCELADO, color: '#9f1239' },
     ]),
     donutChartSvg('Tickets por prioridad', [
       { label: 'Baja', valor: d.porPrioridad.BAJA, color: '#64748b' },
@@ -650,8 +863,80 @@ async function cargarEstadisticas() {
       { label: 'Alta', valor: d.porPrioridad.ALTA, color: '#b45309' },
       { label: 'Urgente', valor: d.porPrioridad.URGENTE, color: '#b91c1c' },
     ]),
-    barChartSvg('Creados vs. resueltos (últimos 7 días)', d.tendencia),
+    barChartSvg(`Creados vs. resueltos (${d.desde} a ${d.hasta})`, d.tendencia),
   ].join('');
+
+  const agentesEl = qs('#rendimiento-agentes');
+  agentesEl.innerHTML = d.rendimientoAgentes.length
+    ? d.rendimientoAgentes.map(agenteRendimientoHtml).join('')
+    : '<p class="panel-status">Sin datos en este período.</p>';
+}
+
+/** 'YYYY-MM-DD' en horario local (no `toISOString()`, que es UTC y puede correr la fecha un día para el usuario). */
+function fechaLocalISO(date) {
+  const anio = date.getFullYear();
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const dia = String(date.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+}
+
+function calcularRangoPreset(preset) {
+  const hoy = new Date();
+  const hasta = fechaLocalISO(hoy);
+
+  if (preset === '7' || preset === '30') {
+    const desdeDate = new Date(hoy);
+    desdeDate.setDate(desdeDate.getDate() - (Number(preset) - 1));
+    return { desde: fechaLocalISO(desdeDate), hasta };
+  }
+  if (preset === 'mes') {
+    const desdeDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return { desde: fechaLocalISO(desdeDate), hasta };
+  }
+
+  return null;
+}
+
+function initEstadisticasSection() {
+  const presetsEl = qs('#estadisticas-presets');
+  const desdeCampo = qs('#estadisticas-desde-campo');
+  const hastaCampo = qs('#estadisticas-hasta-campo');
+  const aplicarBtn = qs('#estadisticas-aplicar');
+  const desdeInput = qs('#estadisticas-desde');
+  const hastaInput = qs('#estadisticas-hasta');
+
+  presetsEl.addEventListener('click', (event) => {
+    const chip = event.target.closest('.chip');
+    if (!chip) return;
+
+    presetsEl.querySelectorAll('.chip').forEach((c) => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+
+    if (chip.dataset.preset === 'personalizado') {
+      desdeCampo.hidden = false;
+      hastaCampo.hidden = false;
+      aplicarBtn.hidden = false;
+      desdeInput.value = estadisticasDesde;
+      hastaInput.value = estadisticasHasta;
+      return;
+    }
+
+    desdeCampo.hidden = true;
+    hastaCampo.hidden = true;
+    aplicarBtn.hidden = true;
+
+    const rango = calcularRangoPreset(chip.dataset.preset);
+    estadisticasDesde = rango.desde;
+    estadisticasHasta = rango.hasta;
+    cargarEstadisticas();
+  });
+
+  aplicarBtn.addEventListener('click', () => {
+    if (!desdeInput.value || !hastaInput.value) return;
+    estadisticasDesde = desdeInput.value;
+    estadisticasHasta = hastaInput.value;
+    cargarEstadisticas();
+  });
 }
 
 /** Delegación de eventos de "Atención requerida" y "Actividad reciente" -- ambos bloques se re-renderizan enteros en cada cargarDashboard(), así que los listeners van en el contenedor fijo. */
@@ -689,10 +974,10 @@ function initSearch() {
   });
 }
 
-/** Campana del header: mismo dato que los badges de nivel, sumados; al clickear, filtra por Nuevos. */
+/** Campana del header: mismo dato que los badges de nivel, sumados (tickets sin asignar); al clickear, filtra por "Sin asignar". */
 function initNotifBell() {
   qs('#panel-notif-btn').addEventListener('click', () => {
-    irATickets({ link: linkTodos(), estado: 'NEW' });
+    irATickets({ link: linkTodos(), sinAsignar: true });
   });
 }
 
@@ -703,11 +988,11 @@ function initNotifBell() {
  * filtro a un estado conocido antes de aplicar el que corresponda, para
  * que no queden mezclados con lo que haya dejado una vista anterior.
  */
-async function irATickets({ link, estado = '', prioridad = '', soloMios = false, q = '' }) {
+async function irATickets({ link, estado = '', prioridad = '', soloMios = false, sinAsignar = false, q = '' }) {
   showSection('tickets');
   setActiveSidebarLink(link);
   nivelActual = null;
-  sinAsignarActual = false;
+  sinAsignarActual = sinAsignar;
   qFilterActual = q;
   qs('#filter-estado').value = estado;
   qs('#filter-prioridad').value = prioridad;
@@ -794,6 +1079,46 @@ function initTicketsSection() {
       return;
     }
 
+    if (event.target.closest('[data-action="pausar"]')) {
+      const res = await apiFetch(`/api/tickets/${ticketId}/pausar`, { method: 'PATCH' });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo poner en espera el ticket.');
+      cargarTickets();
+      return;
+    }
+
+    if (event.target.closest('[data-action="reanudar"]')) {
+      const res = await apiFetch(`/api/tickets/${ticketId}/reanudar`, { method: 'PATCH' });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo reanudar el ticket.');
+      cargarTickets();
+      return;
+    }
+
+    if (event.target.closest('[data-action="cerrar-ticket"]')) {
+      const res = await apiFetch(`/api/tickets/${ticketId}/cerrar`, { method: 'PATCH' });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo cerrar el ticket.');
+      mostrarAlerta('tickets-alert', 'Ticket cerrado.', 'success');
+      cargarTickets();
+      return;
+    }
+
+    if (event.target.closest('[data-action="cancelar-toggle"]')) {
+      const form = qs('[data-role="cancelar-form"]', card);
+      form.hidden = !form.hidden;
+      return;
+    }
+
+    if (event.target.closest('[data-action="cancelar-confirmar"]')) {
+      const form = qs('[data-role="cancelar-form"]', card);
+      const motivo = qs('[data-role="cancelar-motivo"]', form).value.trim();
+      if (!motivo) return;
+
+      const res = await apiFetch(`/api/tickets/${ticketId}/cancelar`, { method: 'PATCH', body: { motivo } });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo cancelar el ticket.');
+      mostrarAlerta('tickets-alert', 'Ticket cancelado.', 'success');
+      cargarTickets();
+      return;
+    }
+
     if (event.target.closest('[data-action="escalar-toggle"]')) {
       const form = qs('[data-role="escalar-form"]', card);
       form.hidden = !form.hidden;
@@ -835,20 +1160,6 @@ function initTicketsSection() {
     const card = event.target.closest('.ticket-card');
     if (!card) return;
     const ticketId = card.dataset.id;
-
-    if (event.target.matches('[data-action="estado"]')) {
-      const nuevoEstado = event.target.value;
-      const res = await apiFetch(`/api/tickets/${ticketId}/estado`, { method: 'PATCH', body: { estado: nuevoEstado } });
-      if (!res.ok) {
-        mostrarAlerta('tickets-alert', res.message || 'No se pudo actualizar el estado.');
-      } else {
-        const badge = qs('.badge--estado', card);
-        badge.className = `badge badge--estado badge--estado-${nuevoEstado.toLowerCase()}`;
-        badge.textContent = ESTADOS[nuevoEstado] || nuevoEstado;
-        mostrarAlerta('tickets-alert', 'Estado actualizado.', 'success');
-        refrescarBadgesNiveles();
-      }
-    }
 
     if (event.target.matches('[data-action="prioridad"]')) {
       const nuevaPrioridad = event.target.value;
@@ -915,8 +1226,7 @@ function usuarioRowHtml(u) {
         <div class="usuario-row__email">${escapeHtml(u.email)} · ${u.activo ? 'Activo' : 'Inactivo'}</div>
       </div>
       <div class="usuario-row__actions">
-        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-random">Generar contraseña aleatoria</button>
-        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-manual-toggle">Asignar contraseña manual</button>
+        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-manual-toggle">Cambiar contraseña</button>
         ${
           u.activo
             ? '<button type="button" class="btn btn-secondary btn--sm" data-action="desactivar">Dar de baja</button>'
@@ -924,7 +1234,8 @@ function usuarioRowHtml(u) {
         }
       </div>
       <div class="reset-manual-form" data-role="reset-manual-form" hidden>
-        <input type="password" class="field__input" placeholder="Nueva contraseña (mín. 6 caracteres)" minlength="6" />
+        <input type="password" class="field__input" placeholder="Nueva contraseña (mín. 8 caracteres)" minlength="8" />
+        <ul class="password-hints" data-role="password-hints">${passwordHintsItemsHtml()}</ul>
         <button type="button" class="btn btn-primary btn--sm" data-action="reset-manual-confirmar">Confirmar</button>
       </div>
     </div>
@@ -956,6 +1267,8 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
     listEl.innerHTML = res.data.map(usuarioRowHtml).join('');
   }
 
+  initPasswordHints(qs(`#${formId}`));
+
   qs(`#${formId}`).addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.target;
@@ -971,6 +1284,7 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
     }
     mostrarAlerta(alertId, `Se creó "${body.nombre}".`, 'success');
     form.reset();
+    actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
     cargar();
   });
 
@@ -993,13 +1307,6 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
       return;
     }
 
-    if (event.target.closest('[data-action="reset-random"]')) {
-      const res = await apiFetch(`${apiPath}/${id}/reset-password`, { method: 'PATCH' });
-      if (!res.ok) return mostrarAlerta(alertId, res.message || 'No se pudo resetear la contraseña.');
-      mostrarAlerta(alertId, `Contraseña temporal generada: ${res.data.passwordTemporal}`, 'success');
-      return;
-    }
-
     if (event.target.closest('[data-action="reset-manual-toggle"]')) {
       const form = qs('[data-role="reset-manual-form"]', row);
       form.hidden = !form.hidden;
@@ -1010,17 +1317,23 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
       const form = qs('[data-role="reset-manual-form"]', row);
       const input = qs('input', form);
       const password = input.value;
-      if (password.length < 6) {
-        mostrarAlerta(alertId, 'La contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
+      if (!password) return;
 
       const res = await apiFetch(`${apiPath}/${id}/reset-password`, { method: 'PATCH', body: { password } });
-      if (!res.ok) return mostrarAlerta(alertId, res.message || 'No se pudo asignar la contraseña.');
+      if (!res.ok) return mostrarAlerta(alertId, (res.errors && res.errors.join(' ')) || res.message || 'No se pudo asignar la contraseña.');
       input.value = '';
       form.hidden = true;
       mostrarAlerta(alertId, 'Contraseña asignada correctamente.', 'success');
     }
+  });
+
+  // Delegado -- los forms de "reset-manual" son dinámicos (uno por fila,
+  // se re-renderizan enteros en cada `cargar()`), así que el checklist
+  // se engancha acá en el contenedor fijo, no por fila.
+  qs(`#${listId}`).addEventListener('input', (event) => {
+    if (!event.target.matches('[data-role="reset-manual-form"] input[type="password"]')) return;
+    const hintsEl = qs('[data-role="password-hints"]', event.target.closest('[data-role="reset-manual-form"]'));
+    actualizarPasswordHints(hintsEl, event.target.value);
   });
 
   cargar();
@@ -1048,8 +1361,7 @@ function agenteRowHtml(a) {
       </div>
       <div class="usuario-row__actions">
         <button type="button" class="btn btn-secondary btn--sm" data-action="foto-toggle">Cambiar foto</button>
-        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-random">Generar contraseña aleatoria</button>
-        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-manual-toggle">Asignar contraseña manual</button>
+        <button type="button" class="btn btn-secondary btn--sm" data-action="reset-manual-toggle">Cambiar contraseña</button>
         ${
           a.activo
             ? '<button type="button" class="btn btn-secondary btn--sm" data-action="desactivar">Dar de baja</button>'
@@ -1061,7 +1373,8 @@ function agenteRowHtml(a) {
         <button type="button" class="btn btn-primary btn--sm" data-action="foto-confirmar">Subir</button>
       </div>
       <div class="reset-manual-form" data-role="reset-manual-form" hidden>
-        <input type="password" class="field__input" placeholder="Nueva contraseña (mín. 6 caracteres)" minlength="6" />
+        <input type="password" class="field__input" placeholder="Nueva contraseña (mín. 8 caracteres)" minlength="8" />
+        <ul class="password-hints" data-role="password-hints">${passwordHintsItemsHtml()}</ul>
         <button type="button" class="btn btn-primary btn--sm" data-action="reset-manual-confirmar">Confirmar</button>
       </div>
     </div>
@@ -1091,6 +1404,8 @@ function initAgentesSection() {
     listEl.innerHTML = res.data.map(agenteRowHtml).join('');
   }
 
+  initPasswordHints(qs('#crear-administrador-form'));
+
   qs('#crear-administrador-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.target;
@@ -1109,6 +1424,7 @@ function initAgentesSection() {
     }
     mostrarAlerta('administradores-alert', `Se creó "${body.nombre} ${body.apellido}".`, 'success');
     form.reset();
+    actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
     cargar();
   });
 
@@ -1131,13 +1447,6 @@ function initAgentesSection() {
       return;
     }
 
-    if (event.target.closest('[data-action="reset-random"]')) {
-      const res = await apiFetch(`${apiPath}/${id}/reset-password`, { method: 'PATCH' });
-      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo resetear la contraseña.');
-      mostrarAlerta('administradores-alert', `Contraseña temporal generada: ${res.data.passwordTemporal}`, 'success');
-      return;
-    }
-
     if (event.target.closest('[data-action="reset-manual-toggle"]')) {
       const form = qs('[data-role="reset-manual-form"]', row);
       form.hidden = !form.hidden;
@@ -1148,13 +1457,10 @@ function initAgentesSection() {
       const form = qs('[data-role="reset-manual-form"]', row);
       const input = qs('input', form);
       const password = input.value;
-      if (password.length < 6) {
-        mostrarAlerta('administradores-alert', 'La contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
+      if (!password) return;
 
       const res = await apiFetch(`${apiPath}/${id}/reset-password`, { method: 'PATCH', body: { password } });
-      if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo asignar la contraseña.');
+      if (!res.ok) return mostrarAlerta('administradores-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo asignar la contraseña.');
       input.value = '';
       form.hidden = true;
       mostrarAlerta('administradores-alert', 'Contraseña asignada correctamente.', 'success');
@@ -1183,6 +1489,12 @@ function initAgentesSection() {
       mostrarAlerta('administradores-alert', 'Foto actualizada.', 'success');
       cargar();
     }
+  });
+
+  qs('#administradores-list').addEventListener('input', (event) => {
+    if (!event.target.matches('[data-role="reset-manual-form"] input[type="password"]')) return;
+    const hintsEl = qs('[data-role="password-hints"]', event.target.closest('[data-role="reset-manual-form"]'));
+    actualizarPasswordHints(hintsEl, event.target.value);
   });
 
   cargar();
@@ -1276,6 +1588,82 @@ function initCategoriasSection() {
   cargar();
 }
 
+/**
+ * Un AGENTE no tiene acceso a Estadísticas/Usuarios/Agentes de Soporte/
+ * Categorías (ADMIN-only en el backend, ver `TicketController` y
+ * `GestionUsuariosController`) ni a los tabs Nivel 1/2/3 (el backend ya
+ * le fuerza su propio nivel en cualquier listado -- ver
+ * `assertNivelPermitido()` -- así que navegarlos no tiene sentido). Se
+ * oculta la navegación entera; la protección real está en el backend,
+ * esto es solo para no mostrar una puerta que de todos modos da 403.
+ */
+function aplicarVisibilidadPorRol() {
+  if (usuarioActual.rol !== 'AGENTE') return;
+
+  const ocultarGrupoDe = (selector) => {
+    const link = qs(selector);
+    const grupo = link && link.closest('.panel-sidebar__group');
+    if (grupo) grupo.hidden = true;
+  };
+
+  ocultarGrupoDe('.panel-sidebar__link[data-section="estadisticas"]');
+  ocultarGrupoDe('.panel-sidebar__link[data-section="usuarios"]');
+  ocultarGrupoDe('.panel-sidebar__link[data-nivel="1"]');
+
+  const todos = linkTodos();
+  if (todos) todos.textContent = 'Tickets de mi nivel';
+}
+
+/* ====================================
+   MI PERFIL
+   Autoedición de nombre/apellido/foto -- para ADMIN y AGENTE por igual
+   (a diferencia del resto de "Administración", esto no se oculta con
+   aplicarVisibilidadPorRol(): cualquiera puede editar su propio perfil).
+==================================== */
+
+function actualizarMiPerfilAvatar() {
+  qs('#mi-perfil-avatar').innerHTML = avatarHtml(usuarioActual.fotoUrl, usuarioActual.nombre, 'lg');
+}
+
+function initMiPerfilSection() {
+  qs('#mi-perfil-nombre').value = usuarioActual.nombre || '';
+  qs('#mi-perfil-apellido').value = usuarioActual.apellido || '';
+  actualizarMiPerfilAvatar();
+
+  qs('#mi-perfil-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const body = { nombre: form.nombre.value.trim(), apellido: form.apellido.value.trim() };
+
+    const res = await apiFetch('/api/administradores/me', { method: 'PATCH', body });
+    if (!res.ok) {
+      mostrarAlerta('mi-perfil-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudieron guardar los cambios.');
+      return;
+    }
+    usuarioActual.nombre = res.data.nombre;
+    usuarioActual.apellido = res.data.apellido;
+    qs('#panel-user-name').textContent = usuarioActual.nombre;
+    mostrarAlerta('mi-perfil-alert', 'Perfil actualizado.', 'success');
+  });
+
+  qs('#mi-perfil-foto-confirmar').addEventListener('click', async () => {
+    const input = qs('#mi-perfil-foto-input');
+    const archivo = input.files[0];
+    if (!archivo) return;
+
+    const formData = new FormData();
+    formData.append('foto', archivo);
+
+    const res = await apiUpload(`/api/administradores/${usuarioActual.id}/foto`, formData);
+    if (!res.ok) return mostrarAlerta('mi-perfil-alert', res.message || 'No se pudo subir la foto.');
+
+    usuarioActual.fotoUrl = res.data.fotoUrl;
+    input.value = '';
+    actualizarMiPerfilAvatar();
+    mostrarAlerta('mi-perfil-alert', 'Foto actualizada.', 'success');
+  });
+}
+
 /* ====================================
    INIT
 ==================================== */
@@ -1285,6 +1673,12 @@ function initHeader() {
   qs('#logout-btn').addEventListener('click', async () => {
     await logout();
     window.location.href = 'login.html';
+  });
+  qs('#panel-mi-perfil-link').addEventListener('click', (event) => {
+    event.preventDefault();
+    qs('#panel-user-menu').hidden = true;
+    showSection('mi-perfil');
+    setActiveSidebarLink(null);
   });
 }
 
@@ -1305,29 +1699,41 @@ function initBrandLink() {
   });
 }
 
-usuarioActual = await requireAuth(['ADMIN']);
+usuarioActual = await requireAuth(['ADMIN', 'AGENTE']);
 if (usuarioActual) {
   initPanelShell();
   initHeader();
   initBrandLink();
+  aplicarVisibilidadPorRol();
   initSidebarNav();
   initSearch();
   initNotifBell();
   initDashboardSection();
   showSection('inicio');
   cargarDashboard();
-  cargarEstadisticas();
   cargarCategoriasFiltro();
   initTicketsSection();
-  initCategoriasSection();
-  initGestionSection({
-    apiPath: '/api/usuarios',
-    formId: 'crear-usuario-form',
-    listId: 'usuarios-list',
-    statusId: 'usuarios-status',
-    alertId: 'usuarios-alert',
-    entidadLabel: 'cliente',
-    emptyLabel: 'Todavía no hay clientes.',
-  });
-  initAgentesSection();
+  initMiPerfilSection();
+
+  // Estadísticas globales, gestión de clientes/agentes y categorías son
+  // ADMIN-only (ya bloqueado en el backend -- acá directamente no se
+  // inicializan para no pedirle datos a endpoints que le van a dar 403).
+  if (usuarioActual.rol === 'ADMIN') {
+    initEstadisticasSection();
+    const rangoInicial = calcularRangoPreset('30');
+    estadisticasDesde = rangoInicial.desde;
+    estadisticasHasta = rangoInicial.hasta;
+    cargarEstadisticas();
+    initCategoriasSection();
+    initGestionSection({
+      apiPath: '/api/usuarios',
+      formId: 'crear-usuario-form',
+      listId: 'usuarios-list',
+      statusId: 'usuarios-status',
+      alertId: 'usuarios-alert',
+      entidadLabel: 'cliente',
+      emptyLabel: 'Todavía no hay clientes.',
+    });
+    initAgentesSection();
+  }
 }

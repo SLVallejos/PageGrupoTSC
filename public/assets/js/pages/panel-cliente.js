@@ -10,7 +10,16 @@ import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/pa
  * solución y se ocultan los forms de comentar/adjuntar.
  */
 
-const ESTADOS = { NEW: 'Nuevo', EN_PROCESO: 'En proceso', RESUELTO: 'Resuelto' };
+const ESTADOS = {
+  ABIERTO: 'Abierto',
+  PENDIENTE_ASIGNACION: 'Pendiente de asignación',
+  EN_PROCESO: 'En proceso',
+  ESCALADO: 'Escalado',
+  EN_ESPERA: 'En espera',
+  RESUELTO: 'Resuelto',
+  CERRADO: 'Cerrado',
+  CANCELADO: 'Cancelado',
+};
 const PRIORIDADES = { BAJA: 'Baja', MEDIA: 'Media', ALTA: 'Alta', URGENTE: 'Urgente' };
 const SLA_LABELS = { OK: 'SLA OK', PROXIMO: 'SLA próximo', VENCIDO: 'SLA vencido', CUMPLIDO: 'SLA cumplido', FUERA_PLAZO: 'Fuera de plazo' };
 const EVENTO_LABELS = {
@@ -22,6 +31,11 @@ const EVENTO_LABELS = {
   ESCALADO: 'Escalado',
   COMENTARIO: 'Comentario',
   RESUELTO: 'Ticket resuelto',
+  PAUSADO: 'Puesto en espera',
+  REANUDADO: 'Reanudado',
+  DEVUELTO: 'Devuelto al agente original',
+  CERRADO: 'Ticket cerrado',
+  CANCELADO: 'Ticket cancelado',
 };
 const PAGE_SIZE = 10;
 const ADJUNTOS_ACEPTADOS = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
@@ -70,7 +84,7 @@ function initCrearTicket() {
       titulo: form.titulo.value.trim(),
       descripcion: form.descripcion.value.trim(),
       prioridad: form.prioridad.value,
-      categoriaId: form.categoriaId.value || null,
+      categoriaId: form.categoriaId.value,
     };
     const res = await apiFetch('/api/tickets', { method: 'POST', body });
     if (!res.ok) {
@@ -85,14 +99,14 @@ function initCrearTicket() {
   });
 }
 
-/** Poblar el selector de categoría al crear ticket -- solo activas (el cliente no ve inactivas). */
+/** Poblar el selector de categoría al crear ticket -- solo activas (el cliente no ve inactivas). Categoría obligatoria, por eso el placeholder queda disabled. */
 async function cargarCategoriasSelect() {
   const res = await apiFetch('/api/categorias');
   if (!res.ok) return;
 
   const select = qs('#ticket-categoria');
   select.innerHTML =
-    '<option value="">Sin categoría</option>' +
+    '<option value="" disabled selected>Seleccioná una categoría…</option>' +
     res.data.map((c) => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
 }
 
@@ -107,7 +121,11 @@ function ticketCardHtml(t) {
   const asignado = t.asignadoANombre
     ? `Lo está atendiendo ${avatarHtml(t.asignadoAFotoUrl, t.asignadoANombre, 'sm')} ${escapeHtml(t.asignadoANombre)}${t.asignadoATitulo ? ` · ${escapeHtml(t.asignadoATitulo)}` : ''}`
     : 'Todavía sin asignar';
-  const resuelto = t.estado === 'RESUELTO';
+  // RESUELTO, CERRADO y CANCELADO quedan de solo lectura por igual.
+  const cancelado = t.estado === 'CANCELADO';
+  const resuelto = t.estado === 'RESUELTO' || t.estado === 'CERRADO' || cancelado;
+  // Nunca fue tomado por soporte -- se puede borrar de verdad, no solo cancelar.
+  const puedeEliminar = t.agenteOriginalId === null && !cancelado;
 
   return `
     <article class="glass-card ticket-card${resuelto ? ' ticket-card--resuelto' : ''}" data-id="${t.id}">
@@ -127,13 +145,42 @@ function ticketCardHtml(t) {
         <p class="ticket-card__descripcion">${escapeHtml(t.descripcion)}</p>
 
         ${
-          resuelto
+          resuelto && !cancelado
             ? `<div class="solucion-box">
                  <strong>Solución</strong>
                  <p>${escapeHtml(t.solucion)}</p>
                  <span class="ticket-card__meta">Resuelto el ${formatFecha(t.fechaResuelto)}</span>
                </div>`
             : ''
+        }
+        ${
+          cancelado
+            ? `<div class="solucion-box">
+                 <strong>Ticket cancelado</strong>
+                 <p>El motivo queda registrado en el Historial, más abajo.</p>
+               </div>`
+            : ''
+        }
+
+        ${
+          resuelto
+            ? ''
+            : `<div class="ticket-card__controls">
+                 <button type="button" class="btn btn-secondary btn--sm" data-action="cancelar-toggle">Cancelar ticket</button>
+                 ${puedeEliminar ? '<button type="button" class="btn btn-secondary btn--sm" data-action="eliminar-toggle">Eliminar ticket</button>' : ''}
+               </div>
+               <div class="resolver-form" data-role="cancelar-form" hidden>
+                 <input type="text" class="field__input" placeholder="Motivo de la cancelación…" required maxlength="500" data-role="cancelar-motivo" />
+                 <button type="button" class="btn btn-primary btn--sm" data-action="cancelar-confirmar">Confirmar cancelación</button>
+               </div>
+               ${
+                 puedeEliminar
+                   ? `<div class="resolver-form" data-role="eliminar-form" hidden>
+                        <p class="ticket-card__meta">¿Seguro? Esto borra el ticket por completo y no se puede deshacer.</p>
+                        <button type="button" class="btn btn-primary btn--sm" data-action="eliminar-confirmar">Sí, eliminar</button>
+                      </div>`
+                   : ''
+               }`
         }
 
         <div class="adjuntos-section">
@@ -255,6 +302,9 @@ function detalleEventoTexto(e) {
   if (e.tipo === 'PRIORIDAD') {
     return `Nueva prioridad: ${PRIORIDADES[e.detalle] || e.detalle}`;
   }
+  if (e.tipo === 'CANCELADO') {
+    return `Motivo: ${escapeHtml(e.motivo || '')}`;
+  }
   return escapeHtml(e.detalle || '');
 }
 
@@ -297,17 +347,52 @@ function initTicketsSection() {
   const listEl = qs('#tickets-list');
 
   listEl.addEventListener('click', async (event) => {
-    if (!event.target.closest('[data-action="toggle"]')) return;
     const card = event.target.closest('.ticket-card');
-    const wasOpen = card.classList.contains('is-open');
-    card.classList.toggle('is-open', !wasOpen);
-    if (!wasOpen && !card.dataset.detalleCargado) {
-      card.dataset.detalleCargado = '1';
-      await Promise.all([
-        cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card)),
-        cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card)),
-        cargarEventos(card.dataset.id, qs('[data-role="eventos"]', card)),
-      ]);
+    if (!card) return;
+
+    if (event.target.closest('[data-action="toggle"]')) {
+      const wasOpen = card.classList.contains('is-open');
+      card.classList.toggle('is-open', !wasOpen);
+      if (!wasOpen && !card.dataset.detalleCargado) {
+        card.dataset.detalleCargado = '1';
+        await Promise.all([
+          cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card)),
+          cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card)),
+          cargarEventos(card.dataset.id, qs('[data-role="eventos"]', card)),
+        ]);
+      }
+      return;
+    }
+
+    if (event.target.closest('[data-action="cancelar-toggle"]')) {
+      const form = qs('[data-role="cancelar-form"]', card);
+      form.hidden = !form.hidden;
+      return;
+    }
+
+    if (event.target.closest('[data-action="cancelar-confirmar"]')) {
+      const form = qs('[data-role="cancelar-form"]', card);
+      const motivo = qs('[data-role="cancelar-motivo"]', form).value.trim();
+      if (!motivo) return;
+
+      const res = await apiFetch(`/api/tickets/${card.dataset.id}/cancelar`, { method: 'PATCH', body: { motivo } });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo cancelar el ticket.');
+      mostrarAlerta('tickets-alert', 'Ticket cancelado.', 'success');
+      cargarTickets();
+      return;
+    }
+
+    if (event.target.closest('[data-action="eliminar-toggle"]')) {
+      const form = qs('[data-role="eliminar-form"]', card);
+      form.hidden = !form.hidden;
+      return;
+    }
+
+    if (event.target.closest('[data-action="eliminar-confirmar"]')) {
+      const res = await apiFetch(`/api/tickets/${card.dataset.id}`, { method: 'DELETE' });
+      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo eliminar el ticket.');
+      mostrarAlerta('tickets-alert', 'Ticket eliminado.', 'success');
+      cargarTickets();
     }
   });
 
