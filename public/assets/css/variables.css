@@ -125,6 +125,7 @@
   --z-dropdown: 10;
   --z-header: 1000;
   --z-whatsapp: 1000;
+  --z-toast: 2000;
   --z-skiplink: 9999;
 
   /* Altura real del header, la fija navbar.js en tiempo de ejecución */

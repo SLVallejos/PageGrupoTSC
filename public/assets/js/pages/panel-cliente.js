@@ -1,6 +1,7 @@
 import { qs } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout, initInactivityLogout } from '../modules/api-client.js';
 import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
+import { showToast } from '../modules/toast.js';
 
 /**
  * Panel de cliente: crear tickets y hacer seguimiento de los propios (ver
@@ -54,12 +55,13 @@ function formatFecha(iso) {
   return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+/**
+ * `elId` queda de la época de las alertas inline por sección (ver
+ * `.panel-alert` en el HTML, ya sin uso) -- se mantiene en la firma
+ * para no tocar los call sites existentes.
+ */
 function mostrarAlerta(elId, mensaje, tipo = 'error') {
-  const el = qs(`#${elId}`);
-  if (!el) return;
-  el.textContent = mensaje;
-  el.className = `panel-alert is-visible${tipo === 'success' ? ' panel-alert--success' : ''}`;
-  if (tipo === 'success') setTimeout(() => el.classList.remove('is-visible'), 4000);
+  showToast(mensaje, tipo);
 }
 
 /** Avatar del agente que atiende el ticket: foto si tiene, si no un círculo con su inicial. */

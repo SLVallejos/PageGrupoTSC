@@ -1,6 +1,7 @@
 import { qs, qsa } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout } from '../modules/api-client.js';
 import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
+import { showToast } from '../modules/toast.js';
 
 /**
  * Panel de administración: gestión de tickets (ver, adjudicar/liberar,
@@ -95,12 +96,14 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * `elId` queda de la época de las alertas inline por sección (ver
+ * `.panel-alert` en el HTML, ya sin uso) -- se mantiene en la firma
+ * para no tocar los ~40 call sites de este archivo, todos ya con
+ * mensajes específicos (sección 22 del prompt maestro).
+ */
 function mostrarAlerta(elId, mensaje, tipo = 'error') {
-  const el = qs(`#${elId}`);
-  if (!el) return;
-  el.textContent = mensaje;
-  el.className = `panel-alert is-visible${tipo === 'success' ? ' panel-alert--success' : ''}`;
-  if (tipo === 'success') setTimeout(() => el.classList.remove('is-visible'), 4000);
+  showToast(mensaje, tipo);
 }
 
 /** Avatar de un agente: foto si tiene, si no un círculo con la inicial del nombre. Mismo helper para el roster de Agentes y para "Asignado a" en tarjetas de ticket. */

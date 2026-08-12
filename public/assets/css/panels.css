@@ -60,6 +60,86 @@
 }
 
 /* ====================================
+   TOASTS
+   Notificaciones flotantes no bloqueantes -- reemplazan .panel-alert
+   como salida de mostrarAlerta() (ver toast.js). Fijas arriba a la
+   derecha, apiladas, se cierran solas o con la "×".
+==================================== */
+
+.toast-container {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2-5);
+  max-width: min(360px, calc(100vw - var(--space-8)));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2-5);
+  padding: var(--space-3-5) var(--space-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  color: #ffffff;
+  animation: toast-entrada var(--transition-fast);
+}
+
+.toast--success {
+  background-color: var(--color-success-dark);
+}
+
+.toast--error {
+  background-color: var(--color-error-strong);
+}
+
+.toast.is-saliendo {
+  animation: toast-salida var(--transition-fast) forwards;
+}
+
+.toast__texto {
+  flex: 1;
+}
+
+.toast__cerrar {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+.toast__cerrar:hover {
+  opacity: 1;
+}
+
+@keyframes toast-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-salida {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ====================================
    FILTROS
 ==================================== */
 
