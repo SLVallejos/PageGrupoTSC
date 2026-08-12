@@ -1145,6 +1145,9 @@ function initTicketsSection() {
     }
 
     if (event.target.closest('[data-action="cerrar-ticket"]')) {
+      if (!confirm('¿Cerrar este ticket? Pasa a estado "Cerrado" de forma definitiva dentro del flujo (no se puede reabrir).')) {
+        return;
+      }
       const res = await apiFetch(`/api/tickets/${ticketId}/cerrar`, { method: 'PATCH' });
       if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo cerrar el ticket.');
       mostrarAlerta('tickets-alert', 'Ticket cerrado.', 'success');
@@ -1387,6 +1390,10 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
     }
 
     if (event.target.closest('[data-action="desactivar"]')) {
+      const nombre = qs('.usuario-row__nombre', row)?.textContent.trim() || `este ${entidadLabel}`;
+      if (!confirm(`¿Dar de baja a "${nombre}"? No podrá iniciar sesión ni crear tickets nuevos. Conserva su historial y podés reactivarlo cuando quieras.`)) {
+        return;
+      }
       const res = await apiFetch(`${apiPath}/${id}/estado`, { method: 'PATCH', body: { activo: false } });
       if (!res.ok) return mostrarAlerta(alertId, res.message || `No se pudo desactivar el ${entidadLabel}.`);
       cargar();
@@ -1527,6 +1534,10 @@ function initAgentesSection() {
     }
 
     if (event.target.closest('[data-action="desactivar"]')) {
+      const nombre = qs('.usuario-row__nombre', row)?.textContent.trim() || 'este técnico';
+      if (!confirm(`¿Dar de baja a "${nombre}"? No podrá iniciar sesión ni se le asignarán nuevos tickets. Conserva su historial y podés reactivarlo cuando quieras.`)) {
+        return;
+      }
       const res = await apiFetch(`${apiPath}/${id}/estado`, { method: 'PATCH', body: { activo: false } });
       if (!res.ok) return mostrarAlerta('administradores-alert', res.message || 'No se pudo desactivar el técnico.');
       cargar();
