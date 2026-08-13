@@ -1,4 +1,4 @@
-import { qs } from '../utils.js';
+import { qs, qsa } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout, initInactivityLogout } from '../modules/api-client.js';
 import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
 import { showToast } from '../modules/toast.js';
@@ -53,6 +53,31 @@ function escapeHtml(value) {
 function formatFecha(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/** 'HH:MM:SS' con padding -- para el countdown de SLA, nunca con signo (el signo lo decide el llamador). */
+function formatHms(totalSegundos) {
+  const h = Math.floor(totalSegundos / 3600);
+  const m = Math.floor((totalSegundos % 3600) / 60);
+  const s = Math.floor(totalSegundos % 60);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+/** SLA en vivo: "01:32:45 restante" o, ya vencido, "VENCIDO +00:24:12". */
+function formatSlaCountdown(vencimientoIso) {
+  const diffMs = new Date(vencimientoIso).getTime() - Date.now();
+  if (diffMs <= 0) {
+    return `VENCIDO +${formatHms(Math.abs(diffMs) / 1000)}`;
+  }
+  return `${formatHms(diffMs / 1000)} restante`;
+}
+
+/** Refresca todos los countdown de SLA visibles -- un solo timer global en vez de uno por tarjeta. */
+function actualizarSlaCountdowns() {
+  qsa('[data-sla-vencimiento]').forEach((el) => {
+    el.textContent = formatSlaCountdown(el.dataset.slaVencimiento);
+  });
 }
 
 /**
@@ -120,6 +145,13 @@ function ticketCardHtml(t) {
   const estadoClase = `badge--estado-${t.estado.toLowerCase()}`;
   const prioridadClase = `badge--prioridad-${t.prioridad.toLowerCase()}`;
   const slaClase = `badge--sla-${t.slaEstado.toLowerCase()}`;
+  // OK/PROXIMO/VENCIDO son estados "en vivo" (el plazo sigue
+  // corriendo) -- CUMPLIDO/FUERA_PLAZO ya son fotos fijas de cuando se
+  // resolvió. Solo los primeros llevan data-sla-vencimiento para que
+  // actualizarSlaCountdowns() los encuentre.
+  const slaEsVivo = t.slaEstado === 'OK' || t.slaEstado === 'PROXIMO' || t.slaEstado === 'VENCIDO';
+  const slaTexto = slaEsVivo ? formatSlaCountdown(t.slaVencimiento) : (SLA_LABELS[t.slaEstado] || t.slaEstado);
+  const slaAtributo = slaEsVivo ? ` data-sla-vencimiento="${t.slaVencimiento}"` : '';
   const asignado = t.asignadoANombre
     ? `Lo está atendiendo ${avatarHtml(t.asignadoAFotoUrl, t.asignadoANombre, 'sm')} ${escapeHtml(t.asignadoANombre)}${t.asignadoATitulo ? ` · ${escapeHtml(t.asignadoATitulo)}` : ''}`
     : 'Todavía sin asignar';
@@ -140,7 +172,7 @@ function ticketCardHtml(t) {
         ${t.categoriaNombre ? `<span class="badge badge--categoria">${escapeHtml(t.categoriaNombre)}</span>` : ''}
         <span class="badge badge--estado ${estadoClase}">${ESTADOS[t.estado] || t.estado}</span>
         <span class="badge badge--prioridad ${prioridadClase}">${PRIORIDADES[t.prioridad] || t.prioridad}</span>
-        <span class="badge ${slaClase}" title="Vence: ${formatFecha(t.slaVencimiento)}">${SLA_LABELS[t.slaEstado] || t.slaEstado}</span>
+        <span class="badge ${slaClase}" title="Vence: ${formatFecha(t.slaVencimiento)}"${slaAtributo}>${slaTexto}</span>
         <svg class="ticket-card__toggle" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </div>
       <div class="ticket-card__body">
@@ -470,4 +502,5 @@ if (usuarioActual) {
   initCrearTicket();
   cargarCategoriasSelect();
   initTicketsSection();
+  setInterval(actualizarSlaCountdowns, 1000);
 }

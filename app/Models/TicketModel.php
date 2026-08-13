@@ -529,6 +529,35 @@ final class TicketModel extends BaseModel
     }
 
     /**
+     * Estadísticas personales para "Mi Perfil" de un técnico -- a
+     * diferencia de `rendimientoPorAgente()` (date-ranged, para todos
+     * los agentes a la vez, cuenta "resueltos" solo en estado
+     * RESUELTO), acá es histórico completo de un solo agente y cuenta
+     * RESUELTO+CERRADO como resuelto (un ticket ya cerrado sigue
+     * siendo un ticket que este técnico resolvió).
+     * @return array{activos: int, resueltos: int, resolucionMinProm: ?float}
+     */
+    public function estadisticasPersonales(int $agenteId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                SUM(CASE WHEN estado NOT IN ('RESUELTO','CERRADO','CANCELADO') THEN 1 ELSE 0 END) AS activos,
+                SUM(CASE WHEN estado IN ('RESUELTO','CERRADO') THEN 1 ELSE 0 END) AS resueltos,
+                AVG(CASE WHEN estado IN ('RESUELTO','CERRADO') THEN TIMESTAMPDIFF(MINUTE, created_at, resuelto_at) ELSE NULL END) AS resolucion_prom_min
+             FROM tickets
+             WHERE asignado_a_id = ?"
+        );
+        $stmt->execute([$agenteId]);
+        $r = $stmt->fetch();
+
+        return [
+            'activos' => (int) ($r['activos'] ?? 0),
+            'resueltos' => (int) ($r['resueltos'] ?? 0),
+            'resolucionMinProm' => $r['resolucion_prom_min'] !== null ? (float) $r['resolucion_prom_min'] : null,
+        ];
+    }
+
+    /**
      * @param array{estado?: string, prioridad?: string, asignadoAId?: int, nivel?: int, q?: string, sinAsignar?: bool, categoriaId?: int} $filtros
      * @return array{0: array<int, string>, 1: array<int, mixed>}
      */

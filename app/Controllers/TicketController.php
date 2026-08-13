@@ -399,6 +399,18 @@ final class TicketController extends BaseController
     }
 
     /**
+     * Estadísticas personales para "Mi Perfil" del técnico (tickets
+     * activos/resueltos/tiempo promedio de resolución). Solo AGENTE --
+     * un ADMIN ya no tiene tickets propios (ver "supervisor de solo
+     * lectura"), así que no tendría sentido pedirle esto.
+     */
+    public function misEstadisticas(Request $request): void
+    {
+        $usuario = $this->requireAuth(['AGENTE']);
+        $this->success((new TicketModel())->estadisticasPersonales((int) $usuario['id']));
+    }
+
+    /**
      * Contadores + "Atención requerida" + "Actividad reciente" para el
      * dashboard (sección "Inicio"). Un agente ve el mismo shape de
      * respuesta que un admin, pero acotado a su propio nivel (`$nivel`

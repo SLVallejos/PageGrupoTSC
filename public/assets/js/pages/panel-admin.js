@@ -90,6 +90,31 @@ function formatFecha(iso) {
   return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+/** 'HH:MM:SS' con padding -- para el countdown de SLA, nunca con signo (el signo lo decide el llamador). */
+function formatHms(totalSegundos) {
+  const h = Math.floor(totalSegundos / 3600);
+  const m = Math.floor((totalSegundos % 3600) / 60);
+  const s = Math.floor(totalSegundos % 60);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+/** SLA en vivo: "01:32:45 restante" o, ya vencido, "VENCIDO +00:24:12" -- ver data-sla-vencimiento en ticketCardHtml() y el setInterval que llama a esto cada segundo. */
+function formatSlaCountdown(vencimientoIso) {
+  const diffMs = new Date(vencimientoIso).getTime() - Date.now();
+  if (diffMs <= 0) {
+    return `VENCIDO +${formatHms(Math.abs(diffMs) / 1000)}`;
+  }
+  return `${formatHms(diffMs / 1000)} restante`;
+}
+
+/** Refresca todos los countdown de SLA visibles -- un solo timer global en vez de uno por tarjeta (ver initTicketsSection()). */
+function actualizarSlaCountdowns() {
+  qsa('[data-sla-vencimiento]').forEach((el) => {
+    el.textContent = formatSlaCountdown(el.dataset.slaVencimiento);
+  });
+}
+
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -256,6 +281,14 @@ function ticketCardHtml(t) {
   const estadoClase = `badge--estado-${t.estado.toLowerCase()}`;
   const prioridadClase = `badge--prioridad-${t.prioridad.toLowerCase()}`;
   const slaClase = `badge--sla-${t.slaEstado.toLowerCase()}`;
+  // OK/PROXIMO/VENCIDO son estados "en vivo" (el ticket sigue sin
+  // resolver, el plazo sigue corriendo) -- CUMPLIDO/FUERA_PLAZO ya son
+  // fotos fijas de cuando se resolvió, no cambian con el tiempo. Solo
+  // los primeros llevan data-sla-vencimiento para que
+  // actualizarSlaCountdowns() los encuentre.
+  const slaEsVivo = t.slaEstado === 'OK' || t.slaEstado === 'PROXIMO' || t.slaEstado === 'VENCIDO';
+  const slaTexto = slaEsVivo ? formatSlaCountdown(t.slaVencimiento) : (SLA_LABELS[t.slaEstado] || t.slaEstado);
+  const slaAtributo = slaEsVivo ? ` data-sla-vencimiento="${t.slaVencimiento}"` : '';
   const asignado = t.asignadoANombre
     ? `${avatarHtml(t.asignadoAFotoUrl, t.asignadoANombre, 'sm')} ${escapeHtml(t.asignadoANombre)}${t.asignadoATitulo ? ` · ${escapeHtml(t.asignadoATitulo)}` : ''}`
     : 'Sin asignar';
@@ -281,7 +314,7 @@ function ticketCardHtml(t) {
         ${t.categoriaNombre ? `<span class="badge badge--categoria">${escapeHtml(t.categoriaNombre)}</span>` : ''}
         <span class="badge badge--estado ${estadoClase}">${ESTADOS[t.estado] || t.estado}</span>
         <span class="badge badge--prioridad ${prioridadClase}">${PRIORIDADES[t.prioridad] || t.prioridad}</span>
-        <span class="badge ${slaClase}" title="Vence: ${formatFecha(t.slaVencimiento)}">${SLA_LABELS[t.slaEstado] || t.slaEstado}</span>
+        <span class="badge ${slaClase}" title="Vence: ${formatFecha(t.slaVencimiento)}"${slaAtributo}>${slaTexto}</span>
         <svg class="ticket-card__toggle" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </div>
       <div class="ticket-card__body">
@@ -1776,6 +1809,30 @@ function initMiPerfilSection() {
     actualizarMiPerfilAvatar();
     mostrarAlerta('mi-perfil-alert', 'Foto actualizada.', 'success');
   });
+
+  cargarMiPerfilStats();
+}
+
+/**
+ * Estadísticas propias del técnico (tickets activos/resueltos/tiempo
+ * promedio) -- un ADMIN ya no tiene tickets propios (supervisor de
+ * solo lectura), así que el bloque queda oculto sin pedirle nada al
+ * backend, que igual le devolvería 401.
+ */
+async function cargarMiPerfilStats() {
+  if (usuarioActual.rol !== 'AGENTE') return;
+
+  const res = await apiFetch('/api/tickets/mis-estadisticas');
+  if (!res.ok) return;
+
+  const d = res.data;
+  const statsEl = qs('#mi-perfil-stats');
+  statsEl.innerHTML = [
+    dashboardStatHtml('misTickets', d.activos, 'Tickets activos', false),
+    dashboardStatHtml('resueltosHoy', d.resueltos, 'Tickets resueltos', false),
+    dashboardStatHtml('enProgreso', formatDuracion(d.resolucionMinProm), 'Tiempo promedio de resolución', false),
+  ].join('');
+  statsEl.hidden = false;
 }
 
 /* ====================================
@@ -1828,6 +1885,7 @@ if (usuarioActual) {
   cargarCategoriasFiltro();
   initTicketsSection();
   initMiPerfilSection();
+  setInterval(actualizarSlaCountdowns, 1000);
 
   // Estadísticas globales, gestión de clientes/agentes y categorías son
   // ADMIN-only (ya bloqueado en el backend -- acá directamente no se

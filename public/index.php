@@ -87,6 +87,7 @@ $router->post('/api/auth/logout', [AuthController::class, 'logout']);
 $router->get('/api/tickets', [TicketController::class, 'index']);
 $router->post('/api/tickets', [TicketController::class, 'store']);
 $router->get('/api/tickets/resumen-nuevos', [TicketController::class, 'resumenNuevos']);
+$router->get('/api/tickets/mis-estadisticas', [TicketController::class, 'misEstadisticas']);
 $router->get('/api/tickets/dashboard', [TicketController::class, 'dashboard']);
 $router->get('/api/tickets/estadisticas', [TicketController::class, 'estadisticas']);
 $router->patch('/api/tickets/{id}/asignar', [TicketController::class, 'asignar']);
