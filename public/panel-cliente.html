@@ -48,6 +48,7 @@
           </svg>
         </button>
         <div id="panel-user-menu" class="panel-topbar__user-menu" hidden>
+          <a href="#" id="panel-mi-perfil-link" class="btn btn-secondary btn--sm" data-section="mi-perfil">Mi perfil</a>
           <button type="button" id="logout-btn" class="btn btn-secondary btn--sm">Cerrar sesión</button>
         </div>
       </div>
@@ -69,10 +70,10 @@
   <main id="panel-main" class="panel-main container container--lg">
     <!-- ===== Inicio Sección Crear Ticket ===== -->
     <section class="panel-section" data-section="inicio" aria-label="Crear ticket de soporte">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Portal de clientes</span>
-        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Crear Ticket</h1>
-        <p class="section-heading__subtitle" style="margin-left:0;">Contanos qué necesitás y le vamos a hacer seguimiento hasta resolverlo.</p>
+        <h1 class="section-heading__title section-heading__title--lg">Crear Ticket</h1>
+        <p class="section-heading__subtitle">Contanos qué necesitás y le vamos a hacer seguimiento hasta resolverlo.</p>
       </div>
 
       <div id="crear-alert" class="panel-alert" role="alert"></div>
@@ -108,9 +109,9 @@
 
     <!-- ===== Inicio Sección Mis Tickets ===== -->
     <section class="panel-section is-hidden" data-section="tickets" aria-label="Mis tickets">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Seguimiento</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mis Tickets</h2>
+        <h2 class="section-heading__title">Mis Tickets</h2>
       </div>
 
       <div id="tickets-alert" class="panel-alert" role="alert"></div>
@@ -125,6 +126,30 @@
       </div>
     </section>
     <!-- ===== Fin Sección Mis Tickets ===== -->
+
+    <!-- ===== Inicio Sección Mi Perfil ===== -->
+    <section class="panel-section is-hidden" data-section="mi-perfil" aria-label="Mi perfil">
+      <div class="section-heading">
+        <span class="section-kicker">Mi cuenta</span>
+        <h2 class="section-heading__title">Mi Perfil</h2>
+        <p class="section-heading__subtitle">El email lo administra Grupo TSC -- para cambiarlo, contactanos.</p>
+      </div>
+
+      <div id="mi-perfil-alert" class="panel-alert" role="alert"></div>
+
+      <form id="mi-perfil-form" class="glass-card panel-form" style="max-width: 480px; grid-template-columns: 1fr;" novalidate>
+        <div class="field">
+          <label for="mi-perfil-email" class="field__label field__label--form">Email</label>
+          <input id="mi-perfil-email" class="field__input" disabled />
+        </div>
+        <div class="field">
+          <label for="mi-perfil-nombre" class="field__label field__label--form">Nombre</label>
+          <input id="mi-perfil-nombre" name="nombre" class="field__input" required maxlength="150" />
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </form>
+    </section>
+    <!-- ===== Fin Sección Mi Perfil ===== -->
   </main>
     </div>
   </div>

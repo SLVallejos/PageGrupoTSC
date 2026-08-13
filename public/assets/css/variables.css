@@ -40,6 +40,19 @@
   --color-warn: #f0997b;          /* coral, estado "en curso" / atención */
   --color-whatsapp: #25d366;
 
+  /* ---- Color: badges de panel (estado/prioridad/categoría/SLA) ----
+     Solo los 4 pares que se repetían literalmente en más de una regla
+     de panels.css (ver .badge--* y .badge--sla-*) -- el resto de
+     colores de esa paleta no se duplican en ningún otro lado. */
+  --color-badge-neutral-fg: #64748b;
+  --color-badge-neutral-bg: #f1f5f9;
+  --color-badge-success-fg: #065f46;
+  --color-badge-success-bg: #d1fae5;
+  --color-badge-warn-fg: #b45309;
+  --color-badge-warn-bg: #fef3c7;
+  --color-badge-danger-fg: #b91c1c;
+  --color-badge-danger-bg: #fee2e2;
+
   /* ---- Tipografía ---- */
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;

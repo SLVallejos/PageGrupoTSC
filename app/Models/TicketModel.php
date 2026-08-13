@@ -80,7 +80,14 @@ final class TicketModel extends BaseModel
         $stmt->execute();
         $data = $stmt->fetchAll();
 
-        $count = $this->db->prepare("SELECT COUNT(*) FROM tickets t {$whereSql}");
+        // Mismo JOIN a usuarios_clientes que la query principal --
+        // necesario porque buildAdminFiltros() puede referenciar
+        // `uc.nombre`/`uc.email` en el filtro `q` (búsqueda global).
+        // Es INNER JOIN 1:1 (todo ticket tiene un cliente), así que no
+        // cambia el conteo, solo resuelve el alias.
+        $count = $this->db->prepare(
+            "SELECT COUNT(*) FROM tickets t JOIN usuarios_clientes uc ON uc.id = t.cliente_id {$whereSql}"
+        );
         $count->execute($params);
 
         return ['data' => $data, 'total' => (int) $count->fetchColumn()];
@@ -583,14 +590,26 @@ final class TicketModel extends BaseModel
             $params[] = $filtros['nivel'];
         }
         if (!empty($filtros['q'])) {
+            // Búsqueda global: título, cliente (nombre/email, ya
+            // vienen JOINeados en listForAdmin()) y técnico asignado
+            // (asignado_a_nombre es snapshot propio de tickets, no
+            // requiere join). #ID exacto solo si "q" es puramente
+            // numérico -- así "123" en un email no matchea por id.
             $q = (string) $filtros['q'];
+            $like = '%' . $q . '%';
             if (ctype_digit($q)) {
-                $where[] = '(t.titulo LIKE ? OR t.id = ?)';
-                $params[] = '%' . $q . '%';
+                $where[] = '(t.titulo LIKE ? OR t.id = ? OR uc.nombre LIKE ? OR uc.email LIKE ? OR t.asignado_a_nombre LIKE ?)';
+                $params[] = $like;
                 $params[] = (int) $q;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
             } else {
-                $where[] = 't.titulo LIKE ?';
-                $params[] = '%' . $q . '%';
+                $where[] = '(t.titulo LIKE ? OR uc.nombre LIKE ? OR uc.email LIKE ? OR t.asignado_a_nombre LIKE ?)';
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
             }
         }
         if (!empty($filtros['sinAsignar'])) {

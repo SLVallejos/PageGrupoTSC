@@ -91,6 +91,12 @@
   white-space: nowrap;
 }
 
+/* Mismo motivo que `.field[hidden]` más arriba: `display: inline-flex`
+   gana contra el `[hidden]` del UA sin este override. */
+.btn[hidden] {
+  display: none;
+}
+
 .btn:hover {
   transform: translateY(-2px);
 }
@@ -993,7 +999,7 @@
   gap: 4px;
   font-size: 9px;
   font-weight: var(--fw-bold);
-  color: #fca5a5;
+  color: var(--color-error);
 }
 
 .tv-vms__rec::before {
@@ -1787,6 +1793,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1-5);
+}
+
+/* El `display: flex` de arriba gana contra el `display: none` del UA
+   stylesheet para `[hidden]` (mismo motivo que `.panel-sidebar__link[hidden]`
+   en panels.css) -- sin este override el atributo `hidden` no oculta nada. */
+.field[hidden] {
+  display: none;
 }
 
 .field__label {

@@ -9,6 +9,7 @@ use App\Helpers\Sla;
 use App\Helpers\Validator;
 use App\Models\AdministradorLocalModel;
 use App\Models\CategoriaModel;
+use App\Models\SlaConfigModel;
 use App\Models\TicketAdjuntoModel;
 use App\Models\TicketComentarioModel;
 use App\Models\TicketEventoModel;
@@ -39,6 +40,14 @@ final class TicketController extends BaseController
         'image/gif' => 'gif',
         'application/pdf' => 'pdf',
     ];
+
+    /** Memoizado: una sola query de configuración de SLA por request, sin importar cuántos tickets se formateen. */
+    private ?array $slaHorasCache = null;
+
+    private function slaHoras(): array
+    {
+        return $this->slaHorasCache ??= (new SlaConfigModel())->horasPorPrioridad();
+    }
 
     public function index(Request $request): void
     {
@@ -430,7 +439,7 @@ final class TicketController extends BaseController
         $slaEnRiesgo = 0;
         $slaVencido = 0;
         foreach ($model->listNoResueltosParaSla($nivel) as $t) {
-            $estado = Sla::calcular($t['prioridad'], $t['created_at'], null)['estado'];
+            $estado = Sla::calcular($t['prioridad'], $t['created_at'], null, $this->slaHoras())['estado'];
             if ($estado === 'PROXIMO') {
                 $slaEnRiesgo++;
             } elseif ($estado === 'VENCIDO') {
@@ -781,7 +790,7 @@ final class TicketController extends BaseController
 
     private function formatTicket(array $t, bool $incluirCliente): array
     {
-        $sla = Sla::calcular($t['prioridad'], $t['created_at'], $t['resuelto_at']);
+        $sla = Sla::calcular($t['prioridad'], $t['created_at'], $t['resuelto_at'], $this->slaHoras());
 
         $formatted = [
             'id' => (int) $t['id'],

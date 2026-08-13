@@ -75,13 +75,26 @@ final class AdministradorLocalModel extends UsuarioTablaModel
      * `UsuarioTablaModel` (que trae toda la tabla), acá se filtra
      * `rol = 'AGENTE'` para que el roster de "Técnicos" no incluya la
      * fila del/los ADMIN (no hay pantalla de gestión de administradores,
-     * esos se administran por SQL).
+     * esos se administran por SQL). Suma además `tickets_activos`/
+     * `tickets_resueltos`/`ultima_actividad` vía LEFT JOIN + agregación
+     * sobre `tickets` (ver `AdministradorController::camposExtra()`) --
+     * `GREATEST` con `COALESCE` primero porque en MySQL `GREATEST` con
+     * un solo argumento NULL devuelve NULL, no ignora el nulo.
      * @return array{data: array<int, array<string, mixed>>, total: int}
      */
     public function listAll(int $page, int $pageSize): array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM usuarios_administradores WHERE rol = 'AGENTE' ORDER BY created_at DESC LIMIT ? OFFSET ?"
+            "SELECT a.*,
+                SUM(CASE WHEN t.id IS NOT NULL AND t.estado NOT IN ('RESUELTO','CERRADO','CANCELADO') THEN 1 ELSE 0 END) AS tickets_activos,
+                SUM(CASE WHEN t.estado IN ('RESUELTO','CERRADO') THEN 1 ELSE 0 END) AS tickets_resueltos,
+                MAX(GREATEST(t.created_at, COALESCE(t.resuelto_at, t.created_at), COALESCE(t.cerrado_at, t.created_at))) AS ultima_actividad
+             FROM usuarios_administradores a
+             LEFT JOIN tickets t ON t.asignado_a_id = a.id
+             WHERE a.rol = 'AGENTE'
+             GROUP BY a.id
+             ORDER BY a.created_at DESC
+             LIMIT ? OFFSET ?"
         );
         $stmt->bindValue(1, $pageSize, \PDO::PARAM_INT);
         $stmt->bindValue(2, ($page - 1) * $pageSize, \PDO::PARAM_INT);

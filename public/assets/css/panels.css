@@ -36,6 +36,30 @@
   font-size: var(--text-sm);
 }
 
+/* Estado "no hay datos" -- separado de `.panel-status` (que sigue
+   usándose solo para "Cargando…"/errores) para que se puedan
+   distinguir a simple vista en vez de ser el mismo texto gris. */
+.panel-empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.panel-empty__icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-ink-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-empty__text {
+  font-size: var(--text-sm);
+}
+
 .panel-alert {
   display: none;
   align-items: center;
@@ -85,7 +109,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   font-size: var(--text-sm);
-  color: #ffffff;
+  color: var(--color-white);
   animation: toast-entrada var(--transition-fast);
 }
 
@@ -180,17 +204,17 @@
 
 .badge--estado-abierto { color: #4338ca; background-color: #e0e7ff; }
 .badge--estado-pendiente_asignacion { color: #7c3aed; background-color: #ede9fe; }
-.badge--estado-en_proceso { color: #b45309; background-color: #fef3c7; }
+.badge--estado-en_proceso { color: var(--color-badge-warn-fg); background-color: var(--color-badge-warn-bg); }
 .badge--estado-escalado { color: #c2410c; background-color: #ffedd5; }
 .badge--estado-en_espera { color: #0891b2; background-color: #cffafe; }
-.badge--estado-resuelto { color: #065f46; background-color: #d1fae5; }
+.badge--estado-resuelto { color: var(--color-badge-success-fg); background-color: var(--color-badge-success-bg); }
 .badge--estado-cerrado { color: #475569; background-color: #f1f5f9; }
 .badge--estado-cancelado { color: #9f1239; background-color: #fce7f3; }
 
-.badge--prioridad-baja { color: #64748b; background-color: #f1f5f9; }
+.badge--prioridad-baja { color: var(--color-badge-neutral-fg); background-color: var(--color-badge-neutral-bg); }
 .badge--prioridad-media { color: #1d4ed8; background-color: #dbeafe; }
-.badge--prioridad-alta { color: #b45309; background-color: #fef3c7; }
-.badge--prioridad-urgente { color: #b91c1c; background-color: #fee2e2; }
+.badge--prioridad-alta { color: var(--color-badge-warn-fg); background-color: var(--color-badge-warn-bg); }
+.badge--prioridad-urgente { color: var(--color-badge-danger-fg); background-color: var(--color-badge-danger-bg); }
 
 /* Checklist en vivo de la política de contraseñas (Validator::password() en el backend). */
 .password-hints {
@@ -493,7 +517,7 @@
 
 .avatar-fallback {
   background-color: var(--color-accent-dark);
-  color: #ffffff;
+  color: var(--color-white);
   font-weight: var(--fw-semibold);
 }
 
@@ -524,7 +548,7 @@
 .chip {
   border: 1px solid #cbd5e1;
   border-radius: var(--radius-full);
-  background-color: #ffffff;
+  background-color: var(--color-white);
   padding: var(--space-1-5) var(--space-3-5);
   font-size: var(--text-sm);
   font-weight: var(--fw-medium);
@@ -540,7 +564,7 @@
 .chip.is-active {
   background-color: var(--color-accent-dark);
   border-color: var(--color-accent-dark);
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 /* Variación vs. período anterior, debajo del valor de un KPI en Estadísticas. */
@@ -584,7 +608,7 @@
   gap: var(--space-2);
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-full);
-  background-color: #ffffff;
+  background-color: var(--color-white);
   padding: var(--space-2) var(--space-5);
   color: #475569;
   font-size: var(--text-sm);
@@ -600,7 +624,7 @@
 .nivel-tab.is-active {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 .nivel-tab__badge {
@@ -612,13 +636,13 @@
   border-radius: var(--radius-full);
   padding: 0 var(--space-1-5);
   background-color: #dc2626;
-  color: #ffffff;
+  color: var(--color-white);
   font-size: 11px;
   font-weight: var(--fw-bold);
 }
 
 .nivel-tab.is-active .nivel-tab__badge {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   color: #dc2626;
 }
 
@@ -746,7 +770,7 @@ body[data-page='panel-cliente'] {
 
 body[data-page='panel-admin'] .glass-card,
 body[data-page='panel-cliente'] .glass-card {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   backdrop-filter: none;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -765,14 +789,14 @@ body[data-page='panel-cliente'] .ticket-card__body {
 
 body[data-page='panel-admin'] .field__input,
 body[data-page='panel-cliente'] .field__input {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-color: #cbd5e1;
   color: #0f172a;
 }
 
 body[data-page='panel-admin'] .field__input:focus,
 body[data-page='panel-cliente'] .field__input:focus {
-  background-color: #ffffff;
+  background-color: var(--color-white);
 }
 
 body[data-page='panel-admin'] .comment-item,
@@ -803,7 +827,7 @@ body[data-page='panel-cliente'] .panel-alert--success {
 
 body[data-page='panel-admin'] .site-header,
 body[data-page='panel-cliente'] .site-header {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   backdrop-filter: none;
@@ -881,7 +905,7 @@ body[data-page='panel-cliente'] .brand {
 
 .panel-topbar__search-input:focus {
   border-color: var(--color-accent);
-  background-color: #ffffff;
+  background-color: var(--color-white);
 }
 
 .panel-topbar__notif {
@@ -910,7 +934,7 @@ body[data-page='panel-cliente'] .brand {
   height: 16px;
   border-radius: var(--radius-full);
   background: #dc2626;
-  color: #ffffff;
+  color: var(--color-white);
   font-size: 10px;
   font-weight: var(--fw-bold);
   display: flex;
@@ -945,7 +969,7 @@ body[data-page='panel-cliente'] .brand {
   top: calc(100% + var(--space-2));
   right: 0;
   min-width: 180px;
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -979,7 +1003,7 @@ body[data-page='panel-cliente'] .brand {
   width: 260px;
   max-width: 80vw;
   overflow-y: auto;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-right: 1px solid #e2e8f0;
   padding: var(--space-5) var(--space-3);
   z-index: 999;
@@ -1057,7 +1081,7 @@ body[data-page='panel-cliente'] .brand {
   height: 18px;
   border-radius: var(--radius-full);
   background: #dc2626;
-  color: #ffffff;
+  color: var(--color-white);
   font-size: 11px;
   font-weight: var(--fw-bold);
   display: inline-flex;
@@ -1072,6 +1096,26 @@ body[data-page='panel-cliente'] .brand {
 
 .panel-section.is-hidden {
   display: none;
+}
+
+/* `.section-heading` (components.css) es centrado por defecto -- pensado
+   para el sitio público. Todo el contenido de panel es alineado a la
+   izquierda, así que se pisa acá una sola vez en vez de repetirlo con
+   `style="..."` inline en cada sección. */
+.panel-section .section-heading {
+  text-align: left;
+  margin-inline: 0;
+  margin-bottom: var(--space-6);
+}
+
+.panel-section .section-heading__subtitle {
+  margin-left: 0;
+}
+
+/* Título de sección de nivel superior (Inicio/Estadísticas/Tickets en
+   el panel admin) -- más grande que el default de `.section-heading__title`. */
+.section-heading__title--lg {
+  font-size: var(--text-4xl);
 }
 
 body[data-page='panel-admin'] .panel-main {
@@ -1114,6 +1158,12 @@ body[data-page='panel-cliente'] .panel-main {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-8);
+}
+
+/* Mismo motivo que `.panel-sidebar__link[hidden]` más arriba: `display:
+   grid` gana contra el `[hidden]` del UA sin este override. */
+.dashboard-stats[hidden] {
+  display: none;
 }
 
 .dashboard-stat {
@@ -1308,23 +1358,23 @@ body[data-page='panel-cliente'] .panel-main {
 ==================================== */
 
 .badge--categoria {
-  color: #64748b;
-  background-color: #f1f5f9;
+  color: var(--color-badge-neutral-fg);
+  background-color: var(--color-badge-neutral-bg);
 }
 
 .badge--sla-ok,
 .badge--sla-cumplido {
-  color: #065f46;
-  background-color: #d1fae5;
+  color: var(--color-badge-success-fg);
+  background-color: var(--color-badge-success-bg);
 }
 
 .badge--sla-proximo {
-  color: #b45309;
-  background-color: #fef3c7;
+  color: var(--color-badge-warn-fg);
+  background-color: var(--color-badge-warn-bg);
 }
 
 .badge--sla-vencido,
 .badge--sla-fuera_plazo {
-  color: #b91c1c;
-  background-color: #fee2e2;
+  color: var(--color-badge-danger-fg);
+  background-color: var(--color-badge-danger-bg);
 }

@@ -21,6 +21,28 @@ export function showSection(key) {
   window.scrollTo(0, 0);
 }
 
+/**
+ * Estado "no hay datos" con ícono -- separado de un simple texto
+ * "Cargando…" para que ambos se puedan distinguir a simple vista (ver
+ * `.panel-empty` en panels.css). `mensaje` siempre es un literal fijo
+ * en el código que llama, nunca dato de usuario -- no hace falta
+ * escapar.
+ */
+export function emptyStateHtml(mensaje) {
+  return `
+    <div class="panel-empty">
+      <div class="panel-empty__icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 8v13H3V8" />
+          <path d="M1 3h22v5H1z" />
+          <path d="M10 12h4" />
+        </svg>
+      </div>
+      <p class="panel-empty__text">${mensaje}</p>
+    </div>
+  `;
+}
+
 /** Marca `link` como el único ítem activo del sidebar (o ninguno, si se pasa null). */
 export function setActiveSidebarLink(link) {
   qsa('.panel-sidebar__link').forEach((el) => el.classList.toggle('is-active', el === link));

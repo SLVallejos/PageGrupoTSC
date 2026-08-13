@@ -40,6 +40,13 @@ final class AdministradorController extends GestionUsuariosController
             'nivel' => $u['nivel'] !== null ? (int) $u['nivel'] : null,
             'rol' => $u['rol'],
             'fotoUrl' => $u['foto_url'] ? "/assets/uploads/avatars/{$u['foto_url']}" : null,
+            // Vienen ya calculados en la fila por listAll() (LEFT JOIN
+            // + agregación sobre tickets, no hay N+1 acá) -- el admin
+            // de arranque no pasa por acá (listAll() ya lo filtra por
+            // rol=AGENTE), así que siempre hay agregado real.
+            'ticketsActivos' => (int) ($u['tickets_activos'] ?? 0),
+            'ticketsResueltos' => (int) ($u['tickets_resueltos'] ?? 0),
+            'ultimaActividad' => $u['ultima_actividad'] ?? null,
         ];
     }
 

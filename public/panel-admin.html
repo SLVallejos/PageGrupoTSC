@@ -41,7 +41,7 @@
         <span class="brand__badge">Service Desk</span>
       </a>
       <div class="panel-topbar__search">
-        <input type="search" id="panel-search-input" class="panel-topbar__search-input" placeholder="Buscar tickets por título o #ID…" aria-label="Buscar tickets" />
+        <input type="search" id="panel-search-input" class="panel-topbar__search-input" placeholder="Buscar tickets por título, #ID, cliente, email o técnico…" aria-label="Buscar tickets" />
       </div>
       <div class="panel-header__user">
         <button type="button" id="panel-notif-btn" class="panel-topbar__notif" aria-label="Notificaciones (tickets nuevos)">
@@ -91,7 +91,7 @@
         <span class="panel-sidebar__group-label">Administración</span>
         <a href="#" class="panel-sidebar__link" data-section="usuarios">Clientes</a>
         <a href="#" class="panel-sidebar__link" data-section="administradores">Técnicos</a>
-        <a href="#" class="panel-sidebar__link" data-section="categorias">Categorías</a>
+        <a href="#" class="panel-sidebar__link" data-section="configuracion">Configuración</a>
       </div>
     </aside>
     <div id="panel-sidebar-backdrop" class="panel-sidebar-backdrop"></div>
@@ -100,10 +100,10 @@
   <main id="panel-main" class="panel-main container">
     <!-- ===== Inicio Sección Inicio (dashboard) ===== -->
     <section class="panel-section" data-section="inicio" aria-label="Inicio">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Panel de administración</span>
-        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Dashboard de Service Desk</h1>
-        <p class="section-heading__subtitle" style="margin-left:0;">Resumen operativo y actividad de soporte</p>
+        <h1 class="section-heading__title section-heading__title--lg">Dashboard de Service Desk</h1>
+        <p class="section-heading__subtitle">Resumen operativo y actividad de soporte</p>
       </div>
 
       <div id="dashboard-alert" class="panel-alert" role="alert"></div>
@@ -124,10 +124,10 @@
 
     <!-- ===== Inicio Sección Estadísticas ===== -->
     <section class="panel-section is-hidden" data-section="estadisticas" aria-label="Estadísticas">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Panel de administración</span>
-        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Estadísticas</h1>
-        <p class="section-heading__subtitle" style="margin-left:0;">Distribución, tendencia y rendimiento de tickets</p>
+        <h1 class="section-heading__title section-heading__title--lg">Estadísticas</h1>
+        <p class="section-heading__subtitle">Distribución, tendencia y rendimiento de tickets</p>
       </div>
 
       <div id="estadisticas-alert" class="panel-alert" role="alert"></div>
@@ -163,9 +163,9 @@
 
     <!-- ===== Inicio Sección Tickets ===== -->
     <section class="panel-section is-hidden" data-section="tickets" aria-label="Tickets de soporte">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Panel de administración</span>
-        <h1 class="section-heading__title" style="font-size: var(--text-4xl);">Tickets de Soporte</h1>
+        <h1 class="section-heading__title section-heading__title--lg">Tickets de Soporte</h1>
       </div>
 
       <div id="tickets-alert" class="panel-alert" role="alert"></div>
@@ -220,9 +220,9 @@
 
     <!-- ===== Inicio Sección Usuarios ===== -->
     <section class="panel-section is-hidden" data-section="usuarios" aria-label="Administración de clientes">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Administración</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Clientes</h2>
+        <h2 class="section-heading__title">Clientes</h2>
       </div>
 
       <div id="usuarios-alert" class="panel-alert" role="alert"></div>
@@ -251,10 +251,10 @@
 
     <!-- ===== Inicio Sección Agentes de Soporte ===== -->
     <section class="panel-section is-hidden" data-section="administradores" aria-label="Técnicos">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Administración</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Técnicos</h2>
-        <p class="section-heading__subtitle" style="margin-left:0;">
+        <h2 class="section-heading__title">Técnicos</h2>
+        <p class="section-heading__subtitle">
           Cuentas que atienden tickets por nivel (1, 2 o 3) -- cada técnico
           se loguea con su propio email y gestiona los tickets que toma.
         </p>
@@ -300,38 +300,71 @@
     </section>
     <!-- ===== Fin Sección Agentes de Soporte ===== -->
 
-    <!-- ===== Inicio Sección Categorías ===== -->
-    <section class="panel-section is-hidden" data-section="categorias" aria-label="Categorías de tickets">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+    <!-- ===== Inicio Sección Configuración ===== -->
+    <section class="panel-section is-hidden" data-section="configuracion" aria-label="Configuración">
+      <div class="section-heading">
         <span class="section-kicker">Administración</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Categorías</h2>
-        <p class="section-heading__subtitle" style="margin-left:0;">
-          No se eliminan categorías en uso -- solo se desactivan, así los
-          tickets que ya las tienen no quedan huérfanos.
+        <h2 class="section-heading__title">Configuración</h2>
+        <p class="section-heading__subtitle">
+          Plazos de SLA y categorías de tickets.
         </p>
       </div>
 
-      <div id="categorias-alert" class="panel-alert" role="alert"></div>
+      <div class="chip-group" id="configuracion-tabs">
+        <button type="button" class="chip is-active" data-tab="sla">SLA</button>
+        <button type="button" class="chip" data-tab="categorias">Categorías</button>
+      </div>
 
-      <form id="crear-categoria-form" class="glass-card panel-form" novalidate>
-        <div class="field">
-          <label for="nueva-categoria-nombre" class="field__label field__label--form">Nombre</label>
-          <input id="nueva-categoria-nombre" name="nombre" class="field__input" required maxlength="100" placeholder="Ej: Hardware" />
-        </div>
-        <button type="submit" class="btn btn-primary">Crear categoría</button>
-      </form>
+      <div data-tab-panel="sla">
+        <div id="sla-config-alert" class="panel-alert" role="alert"></div>
+        <form id="sla-config-form" class="glass-card panel-form" novalidate>
+          <div class="field">
+            <label for="sla-config-urgente" class="field__label field__label--form">Urgente (horas)</label>
+            <input type="number" id="sla-config-urgente" name="URGENTE" class="field__input" min="1" max="720" required />
+          </div>
+          <div class="field">
+            <label for="sla-config-alta" class="field__label field__label--form">Alta (horas)</label>
+            <input type="number" id="sla-config-alta" name="ALTA" class="field__input" min="1" max="720" required />
+          </div>
+          <div class="field">
+            <label for="sla-config-media" class="field__label field__label--form">Media (horas)</label>
+            <input type="number" id="sla-config-media" name="MEDIA" class="field__input" min="1" max="720" required />
+          </div>
+          <div class="field">
+            <label for="sla-config-baja" class="field__label field__label--form">Baja (horas)</label>
+            <input type="number" id="sla-config-baja" name="BAJA" class="field__input" min="1" max="720" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar plazos</button>
+        </form>
+      </div>
 
-      <div id="categorias-list" class="usuarios-list"></div>
-      <p id="categorias-status" class="panel-status">Cargando categorías…</p>
+      <div data-tab-panel="categorias" class="is-hidden">
+        <div id="categorias-alert" class="panel-alert" role="alert"></div>
+
+        <form id="crear-categoria-form" class="glass-card panel-form" novalidate>
+          <div class="field">
+            <label for="nueva-categoria-nombre" class="field__label field__label--form">Nombre</label>
+            <input id="nueva-categoria-nombre" name="nombre" class="field__input" required maxlength="100" placeholder="Ej: Hardware" />
+          </div>
+          <button type="submit" class="btn btn-primary">Crear categoría</button>
+        </form>
+
+        <p class="section-heading__subtitle">
+          No se eliminan categorías en uso -- solo se desactivan, así los
+          tickets que ya las tienen no quedan huérfanos.
+        </p>
+        <div id="categorias-list" class="usuarios-list"></div>
+        <p id="categorias-status" class="panel-status">Cargando categorías…</p>
+      </div>
     </section>
-    <!-- ===== Fin Sección Categorías ===== -->
+    <!-- ===== Fin Sección Configuración ===== -->
 
     <!-- ===== Inicio Sección Mi Perfil ===== -->
     <section class="panel-section is-hidden" data-section="mi-perfil" aria-label="Mi perfil">
-      <div class="section-heading" style="text-align:left; margin-bottom: var(--space-6);">
+      <div class="section-heading">
         <span class="section-kicker">Mi cuenta</span>
-        <h2 class="section-heading__title" style="font-size: var(--text-3xl);">Mi Perfil</h2>
-        <p class="section-heading__subtitle" style="margin-left:0;">
+        <h2 class="section-heading__title">Mi Perfil</h2>
+        <p class="section-heading__subtitle">
           Nombre, apellido y foto -- el título y el nivel los administra
           quien gestiona Técnicos.
         </p>

@@ -7,15 +7,16 @@ namespace App\Helpers;
 use DateTimeImmutable;
 
 /**
- * Cálculo de SLA (tiempo de respuesta esperado según prioridad). No hay
- * tabla de configuración todavía -- los plazos quedan hardcodeados acá;
- * el día que se necesite configurarlos desde el panel, este es el único
- * lugar a tocar. Cálculo puro (sin DB): recibe los datos que
+ * Cálculo de SLA (tiempo de respuesta esperado según prioridad). Los
+ * plazos son editables desde el panel (Configuración -> SLA, ver
+ * `SlaConfigModel`); la constante de acá abajo queda solo como default
+ * si no se pasa `$horasPorPrioridad` (o si la tabla estuviera vacía).
+ * Cálculo puro (sin DB): recibe los datos que
  * `TicketController::formatTicket()` ya tiene a mano.
  */
 final class Sla
 {
-    /** Horas de plazo objetivo por prioridad. */
+    /** Horas de plazo objetivo por prioridad (default/fallback). */
     private const HORAS_POR_PRIORIDAD = [
         'URGENTE' => 4,
         'ALTA' => 8,
@@ -24,11 +25,16 @@ final class Sla
     ];
 
     /**
+     * @param array<string, int> $horasPorPrioridad
      * @return array{vencimiento: string, estado: 'OK'|'PROXIMO'|'VENCIDO'|'CUMPLIDO'|'FUERA_PLAZO'}
      */
-    public static function calcular(string $prioridad, string $creadoEn, ?string $resueltoEn): array
-    {
-        $horas = self::HORAS_POR_PRIORIDAD[$prioridad] ?? 24;
+    public static function calcular(
+        string $prioridad,
+        string $creadoEn,
+        ?string $resueltoEn,
+        array $horasPorPrioridad = self::HORAS_POR_PRIORIDAD
+    ): array {
+        $horas = $horasPorPrioridad[$prioridad] ?? 24;
         $creado = new DateTimeImmutable($creadoEn);
         $vencimiento = $creado->modify("+{$horas} hours");
 

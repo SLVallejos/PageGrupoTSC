@@ -1,6 +1,6 @@
-import { qs, qsa } from '../utils.js';
+import { qs, qsa, withButtonLoading } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout, initInactivityLogout } from '../modules/api-client.js';
-import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
+import { showSection, setActiveSidebarLink, initPanelShell, emptyStateHtml } from '../modules/panel-shell.js';
 import { showToast } from '../modules/toast.js';
 
 /**
@@ -113,16 +113,18 @@ function initCrearTicket() {
       prioridad: form.prioridad.value,
       categoriaId: form.categoriaId.value,
     };
-    const res = await apiFetch('/api/tickets', { method: 'POST', body });
-    if (!res.ok) {
-      mostrarAlerta('crear-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el ticket.');
-      return;
-    }
-    mostrarAlerta('crear-alert', 'Ticket creado. Te vamos a avisar por acá cuando tengamos novedades.', 'success');
-    form.reset();
-    qs('#ticket-prioridad').value = 'MEDIA';
-    ticketsPage = 1;
-    cargarTickets();
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch('/api/tickets', { method: 'POST', body });
+      if (!res.ok) {
+        mostrarAlerta('crear-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el ticket.');
+        return;
+      }
+      mostrarAlerta('crear-alert', 'Ticket creado. Te vamos a avisar por acá cuando tengamos novedades.', 'success');
+      form.reset();
+      qs('#ticket-prioridad').value = 'MEDIA';
+      ticketsPage = 1;
+      cargarTickets();
+    });
   });
 }
 
@@ -272,7 +274,7 @@ async function cargarTickets() {
   qs('#tickets-next').disabled = ticketsPage >= ticketsTotalPages;
 
   if (!res.data.length) {
-    statusEl.textContent = 'Todavía no creaste ningún ticket.';
+    statusEl.innerHTML = emptyStateHtml('Todavía no creaste ningún ticket.');
     return;
   }
 
@@ -287,7 +289,7 @@ async function cargarComentarios(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<p class="panel-status">Todavía no hay respuestas.</p>';
+    container.innerHTML = emptyStateHtml('Todavía no hay respuestas.');
     return;
   }
   container.innerHTML = res.data
@@ -309,7 +311,7 @@ async function cargarAdjuntos(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<li class="panel-status">Todavía no hay adjuntos.</li>';
+    container.innerHTML = `<li>${emptyStateHtml('Todavía no hay adjuntos.')}</li>`;
     return;
   }
   container.innerHTML = res.data
@@ -349,7 +351,7 @@ async function cargarEventos(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<p class="panel-status">Sin eventos todavía.</p>';
+    container.innerHTML = emptyStateHtml('Sin eventos todavía.');
     return;
   }
   container.innerHTML = res.data
@@ -436,32 +438,38 @@ function initTicketsSection() {
 
     if (event.target.matches('[data-action="comentar"]')) {
       event.preventDefault();
-      const textarea = qs('textarea', event.target);
+      const form = event.target;
+      const textarea = qs('textarea', form);
       const comentario = textarea.value.trim();
       if (!comentario) return;
 
-      const res = await apiFetch(`/api/tickets/${card.dataset.id}/comentarios`, { method: 'POST', body: { comentario } });
-      if (!res.ok) return;
+      await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+        const res = await apiFetch(`/api/tickets/${card.dataset.id}/comentarios`, { method: 'POST', body: { comentario } });
+        if (!res.ok) return;
 
-      textarea.value = '';
-      await cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card));
+        textarea.value = '';
+        await cargarComentarios(card.dataset.id, qs('[data-role="comments"]', card));
+      });
       return;
     }
 
     if (event.target.matches('[data-action="subir-adjunto"]')) {
       event.preventDefault();
-      const input = qs('input[type="file"]', event.target);
+      const form = event.target;
+      const input = qs('input[type="file"]', form);
       const archivo = input.files[0];
       if (!archivo) return;
 
-      const formData = new FormData();
-      formData.append('archivo', archivo);
+      await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+        const formData = new FormData();
+        formData.append('archivo', archivo);
 
-      const res = await apiUpload(`/api/tickets/${card.dataset.id}/adjuntos`, formData);
-      if (!res.ok) return;
+        const res = await apiUpload(`/api/tickets/${card.dataset.id}/adjuntos`, formData);
+        if (!res.ok) return;
 
-      input.value = '';
-      await cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card));
+        input.value = '';
+        await cargarAdjuntos(card.dataset.id, qs('[data-role="adjuntos"]', card));
+      });
     }
   });
 
@@ -490,6 +498,35 @@ function initHeader(usuario) {
     await logout();
     window.location.href = 'login.html';
   });
+  qs('#panel-mi-perfil-link').addEventListener('click', (event) => {
+    event.preventDefault();
+    qs('#panel-user-menu').hidden = true;
+    showSection('mi-perfil');
+    setActiveSidebarLink(null);
+  });
+}
+
+/** "Mi Perfil" -- solo nombre autoeditable (el email lo administra Grupo TSC, mismo criterio que título/nivel para un técnico). */
+function initMiPerfilSection() {
+  qs('#mi-perfil-email').value = usuarioActual.email || '';
+  qs('#mi-perfil-nombre').value = usuarioActual.nombre || '';
+
+  qs('#mi-perfil-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const body = { nombre: form.nombre.value.trim() };
+
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch('/api/usuarios/me', { method: 'PATCH', body });
+      if (!res.ok) {
+        mostrarAlerta('mi-perfil-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudieron guardar los cambios.');
+        return;
+      }
+      usuarioActual.nombre = res.data.nombre;
+      qs('#panel-user-name').textContent = usuarioActual.nombre;
+      mostrarAlerta('mi-perfil-alert', 'Perfil actualizado.', 'success');
+    });
+  });
 }
 
 const usuarioActual = await requireAuth(['CLIENTE']);
@@ -502,5 +539,6 @@ if (usuarioActual) {
   initCrearTicket();
   cargarCategoriasSelect();
   initTicketsSection();
+  initMiPerfilSection();
   setInterval(actualizarSlaCountdowns, 1000);
 }

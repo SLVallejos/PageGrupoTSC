@@ -116,6 +116,13 @@ CREATE TABLE IF NOT EXISTS ticket_eventos (
     INDEX idx_ticket (ticket_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Plazos de SLA por prioridad, editables desde el panel (Configuración).
+CREATE TABLE IF NOT EXISTS sla_config (
+    prioridad ENUM('BAJA','MEDIA','ALTA','URGENTE') NOT NULL PRIMARY KEY,
+    horas INT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Administrador local de arranque -- entrá con esto y cambiá la
 -- contraseña desde "Resetear contraseña" en el panel apenas puedas
 -- loguearte. Password en texto plano (una sola vez, no se repite en
@@ -130,3 +137,6 @@ INSERT INTO usuarios_administradores (nombre, email, password_hash, rol) VALUES 
 INSERT INTO categorias (nombre) VALUES
     ('Impresoras'), ('Wi-Fi'), ('Cámaras'), ('Computadoras'),
     ('Alarma'), ('Control de Acceso'), ('Otros');
+
+INSERT INTO sla_config (prioridad, horas) VALUES
+    ('URGENTE', 4), ('ALTA', 8), ('MEDIA', 24), ('BAJA', 72);

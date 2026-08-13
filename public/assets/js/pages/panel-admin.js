@@ -1,6 +1,6 @@
-import { qs, qsa } from '../utils.js';
+import { qs, qsa, withButtonLoading } from '../utils.js';
 import { requireAuth, apiFetch, apiUpload, logout } from '../modules/api-client.js';
-import { showSection, setActiveSidebarLink, initPanelShell } from '../modules/panel-shell.js';
+import { showSection, setActiveSidebarLink, initPanelShell, emptyStateHtml } from '../modules/panel-shell.js';
 import { showToast } from '../modules/toast.js';
 
 /**
@@ -424,7 +424,7 @@ async function cargarTickets() {
   qs('#tickets-next').disabled = ticketsPage >= ticketsTotalPages;
 
   if (!res.data.length) {
-    statusEl.textContent = 'No hay tickets que coincidan con estos filtros.';
+    statusEl.innerHTML = emptyStateHtml('No hay tickets que coincidan con estos filtros.');
   } else {
     statusEl.style.display = 'none';
     listEl.innerHTML = res.data.map(ticketCardHtml).join('');
@@ -440,7 +440,7 @@ async function cargarComentarios(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<p class="panel-status">Todavía no hay comentarios.</p>';
+    container.innerHTML = emptyStateHtml('Todavía no hay comentarios.');
     return;
   }
   container.innerHTML = res.data
@@ -462,7 +462,7 @@ async function cargarAdjuntos(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<li class="panel-status">Todavía no hay adjuntos.</li>';
+    container.innerHTML = `<li>${emptyStateHtml('Todavía no hay adjuntos.')}</li>`;
     return;
   }
   container.innerHTML = res.data
@@ -502,7 +502,7 @@ async function cargarEventos(ticketId, container) {
     return;
   }
   if (!res.data.length) {
-    container.innerHTML = '<p class="panel-status">Sin eventos todavía.</p>';
+    container.innerHTML = emptyStateHtml('Sin eventos todavía.');
     return;
   }
   container.innerHTML = res.data
@@ -835,12 +835,12 @@ async function cargarDashboard() {
   const atencionEl = qs('#atencion-requerida');
   atencionEl.innerHTML = d.atencionRequerida.length
     ? d.atencionRequerida.map(atencionRequeridaHtml).join('')
-    : '<p class="panel-status">Todo al día — no hay tickets que requieran atención inmediata.</p>';
+    : emptyStateHtml('Todo al día — no hay tickets que requieran atención inmediata.');
 
   const actividadEl = qs('#actividad-reciente');
   actividadEl.innerHTML = d.actividadReciente.length
     ? d.actividadReciente.map(actividadRecienteHtml).join('')
-    : '<p class="panel-status">Sin actividad reciente.</p>';
+    : emptyStateHtml('Sin actividad reciente.');
 }
 
 /** Sección Estadísticas -- mismo endpoint que el dashboard (ya trae porEstado/porPrioridad/tendencia), pero se pinta en su propia sección del sidebar, no mezclado con Inicio. */
@@ -956,7 +956,7 @@ async function cargarEstadisticas() {
   const agentesEl = qs('#rendimiento-agentes');
   agentesEl.innerHTML = d.rendimientoAgentes.length
     ? d.rendimientoAgentes.map(agenteRendimientoHtml).join('')
-    : '<p class="panel-status">Sin datos en este período.</p>';
+    : emptyStateHtml('Sin datos en este período.');
 }
 
 /** 'YYYY-MM-DD' en horario local (no `toISOString()`, que es UTC y puede correr la fecha un día para el usuario). */
@@ -1272,32 +1272,38 @@ function initTicketsSection() {
 
     if (event.target.matches('[data-action="comentar"]')) {
       event.preventDefault();
-      const textarea = qs('textarea', event.target);
+      const form = event.target;
+      const textarea = qs('textarea', form);
       const comentario = textarea.value.trim();
       if (!comentario) return;
 
-      const res = await apiFetch(`/api/tickets/${ticketId}/comentarios`, { method: 'POST', body: { comentario } });
-      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo enviar el comentario.');
+      await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+        const res = await apiFetch(`/api/tickets/${ticketId}/comentarios`, { method: 'POST', body: { comentario } });
+        if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo enviar el comentario.');
 
-      textarea.value = '';
-      await cargarComentarios(ticketId, qs('[data-role="comments"]', card));
+        textarea.value = '';
+        await cargarComentarios(ticketId, qs('[data-role="comments"]', card));
+      });
       return;
     }
 
     if (event.target.matches('[data-action="subir-adjunto"]')) {
       event.preventDefault();
-      const input = qs('input[type="file"]', event.target);
+      const form = event.target;
+      const input = qs('input[type="file"]', form);
       const archivo = input.files[0];
       if (!archivo) return;
 
-      const formData = new FormData();
-      formData.append('archivo', archivo);
+      await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+        const formData = new FormData();
+        formData.append('archivo', archivo);
 
-      const res = await apiUpload(`/api/tickets/${ticketId}/adjuntos`, formData);
-      if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo subir el adjunto.');
+        const res = await apiUpload(`/api/tickets/${ticketId}/adjuntos`, formData);
+        if (!res.ok) return mostrarAlerta('tickets-alert', res.message || 'No se pudo subir el adjunto.');
 
-      input.value = '';
-      await cargarAdjuntos(ticketId, qs('[data-role="adjuntos"]', card));
+        input.value = '';
+        await cargarAdjuntos(ticketId, qs('[data-role="adjuntos"]', card));
+      });
     }
   });
 
@@ -1309,11 +1315,13 @@ function initTicketsSection() {
 ==================================== */
 
 function usuarioRowHtml(u) {
+  const ultimaActividad = u.ultimaActividad ? formatFecha(u.ultimaActividad) : 'Sin actividad';
   return `
     <div class="glass-card usuario-row ${u.activo ? '' : 'is-inactivo'}" data-id="${u.id}">
       <div class="usuario-row__info">
         <div class="usuario-row__nombre">${escapeHtml(u.nombre)}</div>
         <div class="usuario-row__email">${escapeHtml(u.email)} · ${u.activo ? 'Activo' : 'Inactivo'}</div>
+        <div class="usuario-row__email">Alta: ${formatFecha(u.fechaAlta)} · ${u.ticketsCreados} ${u.ticketsCreados === 1 ? 'ticket creado' : 'tickets creados'} · Última actividad: ${ultimaActividad}</div>
       </div>
       <div class="usuario-row__actions">
         <button type="button" class="btn btn-secondary btn--sm" data-action="reset-manual-toggle">Cambiar contraseña</button>
@@ -1384,7 +1392,7 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
       return;
     }
     if (!res.data.length) {
-      statusEl.textContent = emptyLabel;
+      statusEl.innerHTML = emptyStateHtml(emptyLabel);
       listEl.innerHTML = '';
       return;
     }
@@ -1402,15 +1410,17 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
       email: form.email.value.trim(),
       password: form.password.value,
     };
-    const res = await apiFetch(apiPath, { method: 'POST', body });
-    if (!res.ok) {
-      mostrarAlerta(alertId, (res.errors && res.errors.join(' ')) || res.message || `No se pudo crear el ${entidadLabel}.`);
-      return;
-    }
-    mostrarAlerta(alertId, `Se creó "${body.nombre}".`, 'success');
-    form.reset();
-    actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
-    cargar();
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch(apiPath, { method: 'POST', body });
+      if (!res.ok) {
+        mostrarAlerta(alertId, (res.errors && res.errors.join(' ')) || res.message || `No se pudo crear el ${entidadLabel}.`);
+        return;
+      }
+      mostrarAlerta(alertId, `Se creó "${body.nombre}".`, 'success');
+      form.reset();
+      actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
+      cargar();
+    });
   });
 
   qs(`#${listId}`).addEventListener('click', async (event) => {
@@ -1479,6 +1489,7 @@ function initGestionSection({ apiPath, formId, listId, statusId, alertId, entida
 function agenteRowHtml(a) {
   const nivelBadge = a.nivel ? `<span class="badge badge--nivel">Nivel ${a.nivel}</span>` : '';
   const apellido = a.apellido ? ` ${escapeHtml(a.apellido)}` : '';
+  const ultimaActividad = a.ultimaActividad ? formatFecha(a.ultimaActividad) : 'Sin actividad';
 
   return `
     <div class="glass-card usuario-row ${a.activo ? '' : 'is-inactivo'}" data-id="${a.id}">
@@ -1487,6 +1498,7 @@ function agenteRowHtml(a) {
         <div class="usuario-row__nombre">${escapeHtml(a.nombre)}${apellido} ${nivelBadge}</div>
         ${a.titulo ? `<div class="usuario-row__email">${escapeHtml(a.titulo)}</div>` : ''}
         <div class="usuario-row__email">${escapeHtml(a.email)} · ${a.activo ? 'Activo' : 'Inactivo'}</div>
+        <div class="usuario-row__email">${a.ticketsActivos} activos · ${a.ticketsResueltos} resueltos · Última actividad: ${ultimaActividad}</div>
       </div>
       <div class="usuario-row__actions">
         <button type="button" class="btn btn-secondary btn--sm" data-action="foto-toggle">Cambiar foto</button>
@@ -1525,7 +1537,7 @@ function initAgentesSection() {
       return;
     }
     if (!res.data.length) {
-      statusEl.textContent = 'Todavía no hay técnicos.';
+      statusEl.innerHTML = emptyStateHtml('Todavía no hay técnicos.');
       listEl.innerHTML = '';
       return;
     }
@@ -1546,15 +1558,17 @@ function initAgentesSection() {
       email: form.email.value.trim(),
       password: form.password.value,
     };
-    const res = await apiFetch(apiPath, { method: 'POST', body });
-    if (!res.ok) {
-      mostrarAlerta('administradores-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el técnico.');
-      return;
-    }
-    mostrarAlerta('administradores-alert', `Se creó "${body.nombre} ${body.apellido}".`, 'success');
-    form.reset();
-    actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
-    cargar();
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch(apiPath, { method: 'POST', body });
+      if (!res.ok) {
+        mostrarAlerta('administradores-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear el técnico.');
+        return;
+      }
+      mostrarAlerta('administradores-alert', `Se creó "${body.nombre} ${body.apellido}".`, 'success');
+      form.reset();
+      actualizarPasswordHints(qs('[data-role="password-hints"]', form), '');
+      cargar();
+    });
   });
 
   qs('#administradores-list').addEventListener('click', async (event) => {
@@ -1672,7 +1686,7 @@ function initCategoriasSection() {
       return;
     }
     if (!res.data.length) {
-      statusEl.textContent = 'Todavía no hay categorías.';
+      statusEl.innerHTML = emptyStateHtml('Todavía no hay categorías.');
       listEl.innerHTML = '';
       return;
     }
@@ -1685,15 +1699,17 @@ function initCategoriasSection() {
     const form = event.target;
     const nombre = form.nombre.value.trim();
 
-    const res = await apiFetch('/api/categorias', { method: 'POST', body: { nombre } });
-    if (!res.ok) {
-      mostrarAlerta('categorias-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear la categoría.');
-      return;
-    }
-    mostrarAlerta('categorias-alert', `Se creó "${nombre}".`, 'success');
-    form.reset();
-    cargar();
-    cargarCategoriasFiltro();
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch('/api/categorias', { method: 'POST', body: { nombre } });
+      if (!res.ok) {
+        mostrarAlerta('categorias-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudo crear la categoría.');
+        return;
+      }
+      mostrarAlerta('categorias-alert', `Se creó "${nombre}".`, 'success');
+      form.reset();
+      cargar();
+      cargarCategoriasFiltro();
+    });
   });
 
   qs('#categorias-list').addEventListener('click', async (event) => {
@@ -1716,6 +1732,67 @@ function initCategoriasSection() {
       cargarCategoriasFiltro();
       return;
     }
+  });
+
+  cargar();
+}
+
+/* ====================================
+   CONFIGURACIÓN
+   "Configuración" agrupa SLA (nuevo) y Categorías (ya existía con su
+   propio ítem de sidebar) como sub-pestañas de una sola sección --
+   no hay ningún patrón de tabs-dentro-de-sección en este código
+   todavía, así que se arma uno mínimo acá, scoped a los 2 paneles
+   internos (mismo mecanismo que `showSection()` de panel-shell.js,
+   pero sin tocarla porque esta no es una sección de nivel superior).
+==================================== */
+
+function initConfiguracionTabs() {
+  qs('#configuracion-tabs').addEventListener('click', (event) => {
+    const chip = event.target.closest('.chip');
+    if (!chip) return;
+
+    qsa('#configuracion-tabs .chip').forEach((c) => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+
+    const tab = chip.dataset.tab;
+    qsa('[data-tab-panel]').forEach((panel) => {
+      panel.classList.toggle('is-hidden', panel.dataset.tabPanel !== tab);
+    });
+  });
+}
+
+function initSlaConfigSection() {
+  const PRIORIDADES = ['URGENTE', 'ALTA', 'MEDIA', 'BAJA'];
+
+  async function cargar() {
+    const res = await apiFetch('/api/sla-config');
+    if (!res.ok) {
+      mostrarAlerta('sla-config-alert', res.message || 'No se pudieron cargar los plazos de SLA.');
+      return;
+    }
+    res.data.forEach((fila) => {
+      const input = qs(`#sla-config-${fila.prioridad.toLowerCase()}`);
+      if (input) input.value = fila.horas;
+    });
+  }
+
+  qs('#sla-config-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const body = {};
+    PRIORIDADES.forEach((p) => {
+      body[p] = Number(form[p].value);
+    });
+
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch('/api/sla-config', { method: 'PATCH', body });
+      if (!res.ok) {
+        mostrarAlerta('sla-config-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudieron guardar los plazos.');
+        return;
+      }
+      mostrarAlerta('sla-config-alert', 'Plazos de SLA actualizados.', 'success');
+    });
   });
 
   cargar();
@@ -1782,15 +1859,17 @@ function initMiPerfilSection() {
     const form = event.target;
     const body = { nombre: form.nombre.value.trim(), apellido: form.apellido.value.trim() };
 
-    const res = await apiFetch('/api/administradores/me', { method: 'PATCH', body });
-    if (!res.ok) {
-      mostrarAlerta('mi-perfil-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudieron guardar los cambios.');
-      return;
-    }
-    usuarioActual.nombre = res.data.nombre;
-    usuarioActual.apellido = res.data.apellido;
-    qs('#panel-user-name').textContent = usuarioActual.nombre;
-    mostrarAlerta('mi-perfil-alert', 'Perfil actualizado.', 'success');
+    await withButtonLoading(form.querySelector('button[type="submit"]'), async () => {
+      const res = await apiFetch('/api/administradores/me', { method: 'PATCH', body });
+      if (!res.ok) {
+        mostrarAlerta('mi-perfil-alert', (res.errors && res.errors.join(' ')) || res.message || 'No se pudieron guardar los cambios.');
+        return;
+      }
+      usuarioActual.nombre = res.data.nombre;
+      usuarioActual.apellido = res.data.apellido;
+      qs('#panel-user-name').textContent = usuarioActual.nombre;
+      mostrarAlerta('mi-perfil-alert', 'Perfil actualizado.', 'success');
+    });
   });
 
   qs('#mi-perfil-foto-confirmar').addEventListener('click', async () => {
@@ -1896,6 +1975,8 @@ if (usuarioActual) {
     estadisticasDesde = rangoInicial.desde;
     estadisticasHasta = rangoInicial.hasta;
     cargarEstadisticas();
+    initConfiguracionTabs();
+    initSlaConfigSection();
     initCategoriasSection();
     initGestionSection({
       apiPath: '/api/usuarios',

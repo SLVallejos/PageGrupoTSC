@@ -7,6 +7,7 @@ use App\Controllers\AdministradorController;
 use App\Controllers\AuthController;
 use App\Controllers\CategoriaController;
 use App\Controllers\HealthController;
+use App\Controllers\SlaConfigController;
 use App\Controllers\TicketController;
 use App\Controllers\UsuarioController;
 use App\Core\Request;
@@ -109,6 +110,7 @@ $router->get('/api/tickets/{id}/eventos', [TicketController::class, 'eventos']);
 
 $router->get('/api/usuarios', [UsuarioController::class, 'index']);
 $router->post('/api/usuarios', [UsuarioController::class, 'store']);
+$router->patch('/api/usuarios/me', [UsuarioController::class, 'actualizarPerfil']);
 $router->patch('/api/usuarios/{id}/estado', [UsuarioController::class, 'estado']);
 $router->patch('/api/usuarios/{id}/reset-password', [UsuarioController::class, 'resetPassword']);
 
@@ -122,5 +124,8 @@ $router->post('/api/administradores/{id}/foto', [AdministradorController::class,
 $router->get('/api/categorias', [CategoriaController::class, 'index']);
 $router->post('/api/categorias', [CategoriaController::class, 'store']);
 $router->patch('/api/categorias/{id}/estado', [CategoriaController::class, 'estado']);
+
+$router->get('/api/sla-config', [SlaConfigController::class, 'index']);
+$router->patch('/api/sla-config', [SlaConfigController::class, 'actualizar']);
 
 $router->dispatch(Request::fromGlobals());
